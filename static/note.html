@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body>
+  <div class="container py-3" id="note-app">
+    <div class="row">
+      <div class="col-md-6">
+        <article v-for="note in notes">
+          <pre style="white-space: pre-line;">{{note.content}}</pre>
+        </article>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <form @submit.prevent="saveNote">
+              <div class="form-group">
+                <textarea v-model="form.content" name="content" class="form-control"></textarea>
+              </div>
+              <div class="form-group">
+                <button class="btn btn-primary" type="submit">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function() {
+      const vue = new Vue({
+        el: '#note-app',
+        data: {
+          notes: [],
+          form: {
+            content: '',
+            title: '',
+            id: 0,
+          }
+        },
+        created() {
+          this.reload();
+        },
+        methods: {
+          reload() {
+            this.getNotes();
+          },
+          resetForm() {
+            this.form = {
+              content: '',
+              title: '',
+              id: 0,
+            };
+          },
+          editNote(note) {
+            this.form.content = note.content;
+            this.form.title = note.title;
+            this.form.id = note.id;
+          },
+          async getNotes() {
+            const { notes } = await getNotes();
+            this.notes = notes;
+          },
+          async saveNote() {
+            if (!this.form.id) {
+              await createNote(this.form);
+            } else {
+              await updateNote(this.form);
+            }
+            await this.reload();
+          },
+        }
+      })
+      async function getNotes() {
+        const resp = await fetch('/api/my/notes');
+        const data = resp.json();
+        return data; // data { notes }
+      } 
+      async function createNote(values) { // values{ content, title }
+        const resp = await fetch('/api/a/note.create', {
+          method: 'POST',
+          body: JSON.stringify(values),
+        });
+      }
+      async function updateNote(values) { // values{ content, title, }
+        const resp = await fetch('/api/a/note.create', {
+          method: 'POST',
+          body: JSON.stringify(values),
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>
