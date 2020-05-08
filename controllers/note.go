@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/bin16/tudou/controllers/forms"
 	"github.com/bin16/tudou/db"
@@ -11,9 +12,9 @@ import (
 
 func GetNotes(c *gin.Context) {
 	notes := []models.Note{}
-	db.DB.Where(map[string]interface{}{
+	db.DB.Preload("User").Where(map[string]interface{}{
 		"archived": false,
-	}).Find(&notes)
+	}).Order("created_at DESC").Find(&notes)
 
 	c.JSON(http.StatusOK, gin.H{
 		"notes": notes,
@@ -75,4 +76,24 @@ func UpdateNote(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func RemoveNote(c *gin.Context) {
+	noteID := getNoteID(c)
+	user := c.MustGet("user").(*models.User)
+
+	err := db.DB.Delete(models.Note{ID: noteID, UserID: user.ID}).Error
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func getNoteID(c *gin.Context) int {
+	id := c.Query("id")
+	noteID, _ := strconv.Atoi(id)
+
+	return noteID
 }

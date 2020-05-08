@@ -6,10 +6,10 @@ import "time"
 type Note struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"-"`
-	User      User      `json:"-"`
+	User      User      `json:"user"`
 	Content   string    `json:"content"`
 	Title     string    `json:"title"`
 	Archived  bool      `json:"archived"`
-	CreatedAt time.Time `json:"-"`
+	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"-"`
 }

@@ -8,6 +8,15 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <style>
+    .hover-show {
+      opacity: .5;
+      transition: .2s opacity;
+    }
+    .hover-show:hover {
+      opacity: 1;
+    }
+  </style>
 </head>
 
 <body>
@@ -15,7 +24,14 @@
     <div class="row">
       <div class="col-md-6">
         <article v-for="note in notes">
-          <pre style="white-space: pre-line;">{{note.content}}</pre>
+          <small class="text-black-50 hover-show">
+            <span>#{{note.id}}</span>
+            <!-- <span class="mr-1">@{{note.user.name}}</span> -->
+            <time class="mr-1">{{datetime(note.createdAt)}}</time>
+            <a href="#" @click="editNote(note)" class="text-black-50 mr-1">编辑</a>
+            <a href="#" @click="removeNote(note)" class="text-black-50 mr-1">删除</a>
+          </small>
+          <pre style="white-space: pre-line;" v-html="parse(note.content)"></pre>
         </article>
       </div>
       <div class="col-md-6">
@@ -35,6 +51,228 @@
     </div>
   </div>
   <script>
+    (function () {
+      const TypeText = 'text';
+      const TypeHash = '{#}';
+      const TypeHTTP = '{http://}';
+      const TypeHTTPS = '{https://}';
+      const TypeMDlink = '{[]()}';
+      const TypeAT = '{time}';
+      const TypeBold = '{**}';
+      const TypeDel = '~~';
+      const TypeCode = '``';
+
+      const html = {
+        del: s => `<del>${s.replace(/~~/g, '')}</del>`,
+        strong: s => `<strong>${s.replace(/\*\*/g, '')}</strong>`,
+        time: s => `<a href="#">${s}</a>`,
+        hash: s => `<a href="#">${s}</a>`,
+        code: s => `<code>${s.replace(/`/g, '')}</code>`,
+        mdlink: s => {
+          const results = s.trim().slice(1, s.length - 1).split('](');
+          const [text, href] = results;
+          console.log(results);
+          return `<a href="${href}">${text}</a>`;
+        },
+      }
+
+      window.MarkUpRender = MarkUpRender;
+
+      function MarkUpRender(s) {
+        const items = parser(s);
+        return items.map(item => {
+          switch (item.t) {
+            case TypeText:
+              return item.text;
+            case TypeHash:
+            case TypeHTTP:
+            case TypeAT:
+              return `<a href="${ item.text }">${ item.text }</a>`;
+            case TypeBold:
+              return html.strong(item.text);
+            case TypeDel:
+              return html.del(item.text);
+            case TypeCode:
+              return html.code(item.text);
+            case TypeMDlink:
+              return html.mdlink(item.text);
+          }
+          return '?';
+        }).join('');
+      }
+
+      function parser(s) {
+        const items = [];
+        let buf = [];
+        let key = '';
+        let head = 0;
+        while (head <= s.length) {
+          console.log(key);
+          if (head === s.length) { // End
+            buf.push(key);
+            key = '';
+            const text = buf.join('');
+            if (text) {
+              items.push({ t: TypeText, text, });
+            }
+          } else if (isSpace(s[head]) || isSign(s[head])) {
+            buf.push(key);
+            buf.push(s[head]);
+            key = '';
+          } else {
+            key += s[head];
+          }
+          if (likeHash(key)) { // #X, not ## or #\s
+            while(s[head+1] && likeHash(key + s[head+1])) {
+              key += s[head+1];
+              head++;
+            }
+
+            if (likeHash(key)) {
+              items.push({ t: TypeText, text: buf.join(''), }); 
+              buf = [];
+              items.push({ t: TypeHash, text: key });
+              key = '';
+            }
+          } else if (key.startsWith('http://') || key.startsWith('https://')) { // http(s)
+            while(s[head+1] && !isSpace(s[head+1])) {
+              if (!likeHTTP(key + s[head+1])) {
+                break;
+              }
+              key += s[head+1];
+              head++;
+            }
+
+            if (likeHTTP(key)) {
+              items.push({ t: TypeText, text: buf.join(''), });
+              buf = [];
+              items.push({ t: TypeHTTP, text: key });
+              key = '';
+            }
+          } else if (key.startsWith('[')) {
+            while(s[head+1] && s[head+1] !== '\n') {
+              if (likeMDlink(key)) { // []() end
+                break;
+              }
+              key += s[head+1];
+              head++;
+            }
+
+            if (likeMDlink(key)) {
+              items.push({ t: TypeText, text: buf.join(''), });
+              buf = [];
+              items.push({ t: TypeMDlink, text: key });
+              key = '';
+            }
+          } else if (key.startsWith('@')) {
+            while(s[head+1] && !isSpace(s[head+1])) {
+              key += s[head+1];
+              head++;
+            }
+
+            if (likeTime(key)) {
+              items.push({ t: TypeText, text: buf.join(''), });
+              buf = [];
+              items.push({ t: TypeAT, text: key });
+              key = '';
+            }
+          } else if (key.startsWith('~~')) {
+            while(s[head+1] && s[head+1] != '\n') {
+              if (key.endsWith('~~')) {
+                break;
+              }
+              key += s[head+1];
+              head++;
+            }
+
+            if (likeStrike(key)) {
+              items.push({ t: TypeText, text: buf.join(''), });
+              buf = [];
+              items.push({ t: TypeDel, text: key });
+              key = '';
+            }
+          } else if (key.startsWith('**')) {
+            while(s[head+1] && s[head+1] != '\n') {
+              if (key.endsWith('**')) {
+                break;
+              }
+              key += s[head+1];
+              head++;
+            }
+
+            if (likeBold(key)) {
+              items.push({ t: TypeText, text: buf.join(''), });
+              buf = [];
+              items.push({ t: TypeBold, text: key });
+              key = '';
+            }
+          } else if (key.startsWith('`')) {
+            while(s[head+1] && s[head+1] != '\n') {
+              if (key.endsWith('`')) {
+                break;
+              }
+              key += s[head+1];
+              head++;
+            }
+
+            if (likeCode(key)) {
+              items.push({ t: TypeText, text: buf.join(''), });
+              buf = [];
+              items.push({ t: TypeCode, text: key });
+              key = '';
+            }
+          }
+
+          head++;
+        }
+
+        return items;
+      }
+
+      function toHTML(items) {
+        return items.map(item => item.text).join('');
+      }
+
+      function isSpace(s) {
+        return /[\s\t\r\n]/.test(s);
+      }
+
+      function isSign(s) {
+        return /[\(]/i.test(s);
+      }
+
+      function likeBold(s) {
+        return /^\*\*[^\n]+\*\*$/i.test(s);
+      }
+
+      function likeStrike(s) {
+        return /^~~[^\n]+~~$/i.test(s);
+      }
+
+      function likeHash(s) {
+        return /^#[^\s#]+$/gi.test(s);
+      }
+
+      function likeCode(s) {
+        return /^`[^\n]+`$/gi.test(s);
+      }
+
+      function likeHTTP(s) {
+        return /^https?:\/\/[^><\)\(\s\\\^]{2,}$/gi.test(s);
+      }
+
+      function likeMDlink(s) {
+        return /^\[[^\]\n]+\]\(\s*?[a-z0-9:\/&\.\-_\?]+\s*?\)$/gi.test(s);
+      }
+
+      function likeDomain(s) {
+        return /[a-z0-9\-_]+\.[a-z]+/gi.test(s);
+      }
+
+      function likeTime(s) {
+        return /^@\d{1,2}[\:\.]\d{2}(am|pm)?$/gi.test(s);
+      }
+    })();
     (function() {
       const vue = new Vue({
         el: '#note-app',
@@ -47,9 +285,16 @@
           }
         },
         created() {
-          this.reload();
+          this.reload(); 
         },
         methods: {
+          parse(str) {
+            return MarkUpRender(str);
+          },
+          datetime(rawString) {
+            const t = new Date(rawString);
+            return `${ t.toLocaleDateString() }`
+          },
           reload() {
             this.getNotes();
           },
@@ -65,6 +310,14 @@
             this.form.title = note.title;
             this.form.id = note.id;
           },
+          async removeNote(note) {
+            const title = `Delete note${note.title ? ' ' + note.title : ''}?`;
+            const yes = confirm(title, note.content);
+            if (yes) {
+              await removeNote(note.id);
+              await this.reload();
+            }
+          },
           async getNotes() {
             const { notes } = await getNotes();
             this.notes = notes;
@@ -76,6 +329,7 @@
               await updateNote(this.form);
             }
             await this.reload();
+            await this.resetForm();
           },
         }
       })
@@ -91,9 +345,14 @@
         });
       }
       async function updateNote(values) { // values{ content, title, }
-        const resp = await fetch('/api/a/note.create', {
+        const resp = await fetch('/api/a/note.update', {
           method: 'POST',
           body: JSON.stringify(values),
+        });
+      }
+      async function removeNote(noteId) { // values{ content, title, }
+        const resp = await fetch(`/api/a/note.remove?id=${ noteId }`, {
+          method: 'POST',
         });
       }
     })();

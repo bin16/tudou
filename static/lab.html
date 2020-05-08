@@ -392,6 +392,10 @@
               await pullTodo(todo.id);
               await this.reload();
             },
+            async cancelTodo(todo) {
+              await cancelTodo(todo.id);
+              await this.reload();
+            },
           }
         });
         Vue.component('overdue-view', {

@@ -51,6 +51,7 @@ func main() {
 		// Notes
 		actions.POST("/note.create", controllers.CreateNote)
 		actions.POST("/note.update", controllers.UpdateNote)
+		actions.POST("/note.remove", controllers.RemoveNote)
 	}
 
 	r.Run(":2358")
