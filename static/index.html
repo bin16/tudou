@@ -111,6 +111,16 @@
       color: #888;
       text-decoration: line-through;
     }
+    .todo-text textarea {
+      width: calc(100% - 120px);
+      border: 1px solid var(--border-color);
+      height: 6rem;
+      padding: .5rem .5rem 1rem;
+      resize: vertical;
+    }
+    .todo-text textarea:focus {
+      outline: 1px solid var(--primary-color);
+    }
     .todo-action-group {
       font-size: .8rem;
       /* margin-bottom: .2rem; */
@@ -230,34 +240,48 @@
       <settings-view v-show="view === SettingsView"></settings-view>
       <profile-view v-show="view === ProfileView"></profile-view>
       <tudou-view v-show="view === TudouView"></tudou-view>
+      
     </div>
   </div>
   <template id="todo-item-template">
     <li class="todo" :class="todo.status == 'todo_open' ? 'todo--open' : 'todo--not-open'">
       <div class="todo-icon">
-        <span v-show="todo.status == 'todo_open'"></span>
-        <span v-show="todo.status == 'todo_finished'">
+        <span v-if="todo.status == 'todo_open'"></span>
+        <span v-else-if="todo.status == 'todo_finished'">
           <i class="icon icon--2x icon--finished"></i>
         </span>
-        <span v-show="todo.status == 'todo_postponed'">
+        <span v-else-if="todo.status == 'todo_postponed'">
           <i class="icon icon--2x icon--postponed"></i>
         </span>
-        <span v-show="todo.status == 'todo_canceled'">
+        <span v-else="todo.status == 'todo_canceled'">
           <i class="icon icon--2x icon--canceled"></i>
         </span>
       </div>
       <div class="todo-tag">
         
       </div>
-      <div class="todo-content flex-fill">
+      <div class="todo-content flex-fill" >
         <div class="todo-action-group-wrapper">
           <slot name="action-group" v-bind:todo="todo"></slot>
         </div>
         <span class="todo-text">{{ todo.event.content }}</span>
-        <slot></slot>
       </div>
     </li>
   </template>
+  <!-- <template id="todo-item-form-template">
+    <li class="todo todo-form">
+      <div class="todo-icon"></div>
+      <div class="todo-tag"></div>
+      <div class="todo-content flex-fill">
+        <div class="todo-action-group-wrapper">
+          <slot name="action-group" v-bind:todo="todo"></slot>
+        </div>
+        <span class="todo-text">
+          <textarea v-model="form.content">{{ todo.event.content }}</textarea>
+        </span>
+      </div>
+    </li>
+  </template> -->
   <template id="todo-list-template">
     <ul class="todo-list">
       <slot></slot>
@@ -265,33 +289,85 @@
   </template>
   <template id="today-view-template">
     <todo-list>
-      <todo-item  
-        :todo="todo" 
-        :finishTodo="finishTodo"
-        :key="todo.id" v-for="todo in todos">
-        <template v-slot:action-group="slotProps" >
-          <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
-            <a @click="finishTodo(slotProps.todo)" class="todo-action hover-color-primary" href="javascript:;">完成</a>
-            <a @click="pushTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">明天</a>
-            <a @click="editTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
-            <a @click="cancelTodo(slotProps.todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+      <template v-for="todo in todos">
+        <li class="todo todo-form" v-if="form.id === todo.id">
+          <div class="todo-icon"></div>
+          <div class="todo-tag"></div>
+          <div class="todo-content flex-fill">
+            <div class="todo-action-group-wrapper">
+              <div class="todo-action-group">
+                <a @click="updateTodo" class="todo-action hover-color-primary" href="javascript:;">保存</a>
+                <a @click="resetForm" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+              </div>
+            </div>
+            <span class="todo-text">
+              <textarea v-model="form.content">{{ todo.event.content }}</textarea>
+            </span>
           </div>
-        </template>
-      </todo-item>
+        </li>
+        <todo-item  
+          :todo="todo" 
+          :key="todo.id" v-else>
+          <template v-slot:action-group="slotProps" >
+            <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
+              <a @click="finishTodo(slotProps.todo)" class="todo-action hover-color-primary" href="javascript:;">完成</a>
+              <a @click="pushTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">明天</a>
+              <a @click="editTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
+              <a @click="cancelTodo(slotProps.todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+            </div>
+          </template>
+        </todo-item>
+      </template>
     </todo-list>
   </template>
   <template id="tomorraw-view-template">
     <todo-list>
-      <todo-item :key="todo.id" :todo="todo" v-for="todo in todos">
-        <template v-slot:action-group="slotProps" >
-          <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
-            <a @click="pullTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">今天</a>
-            <a @click="editTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
-            <a @click="cancelTodo(todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+      <template v-for="todo in todos">
+        <li class="todo todo-form" v-if="form.id === todo.id">
+          <div class="todo-icon"></div>
+          <div class="todo-tag"></div>
+          <div class="todo-content flex-fill">
+            <div class="todo-action-group-wrapper">
+              <div class="todo-action-group">
+                <a @click="updateTodo" class="todo-action hover-color-primary" href="javascript:;">保存</a>
+                <a @click="resetForm" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+              </div>
+            </div>
+            <span class="todo-text">
+              <textarea v-model="form.content">{{ todo.event.content }}</textarea>
+            </span>
           </div>
-        </template>
-      </todo-item>
-    </todo-list> 
+        </li>
+        <todo-item  
+          :todo="todo" 
+          :key="todo.id" v-else>
+          <template v-slot:action-group="slotProps" >
+            <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
+              <a @click="pullTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">今天</a>
+              <a @click="editTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
+              <a @click="cancelTodo(todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+            </div>
+          </template>
+        </todo-item>
+      </template>
+      <div class="todo form" v-show="!form.id">
+        <div class="todo-icon"></div>
+        <div class="todo-tag"></div>
+        <div class="todo-content flex-fill">
+          <div class="todo-action-group-wrapper">
+            <div class="todo-action-group">
+              <a @click="createTodo" href="javascript:;" class="todo-action hover-color-primary">创建</a>
+              <a @click="resetForm" href="javascript:;" class="todo-action hover-color-primary">取消</a>
+            </div>
+          </div>
+          <span class="todo-text">
+            <textarea v-model="form.content">
+              Hello World!
+            </textarea>
+          </span>
+        </div>
+      </div>
+    </todo-list>
   </template>
   <template id="overdue-view-template">
     <todo-list>
@@ -359,15 +435,23 @@
         Vue.component('todo-item', {
           template: '#todo-item-template',
           props: ['todo'],
-          methods: {
-            hello() {
-              console.log('Hello World!');
-            }
-          },
+          methods: { },
+        });
+        Vue.component('todo-item-form', {
+          props: ['form'],
+          template: '#todo-item-form-template',
         });
         Vue.component('today-view', {
           template: '#today-view-template',
           props: ['todos'],
+          data() {
+            return {
+              form: {
+                content: '',
+                id: null,
+              },
+            };
+          },
           methods: {
             async pushTodo(todo) {
               await pushTodo(todo.id);
@@ -381,11 +465,23 @@
               await cancelTodo(todo.id);
               await this.reload();
             },
+            async updateTodo() {
+              await updateTodo(this.form.id, this.form.content);
+              await this.reload();
+              this.resetForm();
+            },
+            editTodo(todo) {
+              this.form = { content: todo.event.content, id: todo.id };
+            },
+            resetForm() {
+              this.form = { content: '', id: null, };
+            },
           },
         });
         Vue.component('tomorraw-view', {
           template: '#tomorraw-view-template',
           props: ['todos'],
+          data() { return { form: { content: '', id: null, }, }; },
           methods: {
             async pullTodo(todo) {
               await pullTodo(todo.id);
@@ -394,6 +490,22 @@
             async cancelTodo(todo) {
               await cancelTodo(todo.id);
               await this.reload();
+            },
+            async createTodo() {
+              await createTodo(this.form.content);
+              await this.reload();
+              this.resetForm();
+            },
+            async updateTodo() {
+              await updateTodo(this.form.id, this.form.content);
+              await this.reload();
+              this.resetForm();
+            },
+            editTodo(todo) {
+              this.form = { content: todo.event.content, id: todo.id };
+            },
+            resetForm() {
+              this.form = { content: '', id: null, };
             },
           }
         });
@@ -423,6 +535,7 @@
             todayTodos: [],
             tomorrawTodos: [],
             overdueTodos: [],
+            form: { id: null, content: '' },
 
             view: TodayView,
             TudouView,
@@ -445,6 +558,9 @@
             reload() {
               this.getTodos();
               this.getProfile();
+            },
+            async saveTodo() {
+
             },
             async getTodos() {
               const { todayTodos, tomorrawTodos, overdueTodos, } = await getTodos();
