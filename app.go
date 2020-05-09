@@ -20,7 +20,6 @@ func main() {
 	r := gin.Default()
 	r.Use(static.Serve("/", static.LocalFile("static", false)))
 	r.GET("/", controllers.IndexPage)
-	r.GET("/lab", controllers.LabPage)
 	r.GET("/note", controllers.NotePage)
 
 	api := r.Group("/api", controllers.ShouldAuthed)

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tudou</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/vue-i18n/dist/vue-i18n.js"></script>
+  <style>
+    .text-line-through {
+      text-decoration: line-through;
+    }
+    .todo-status {
+      font-size: .8rem;
+    }
+    .todo-status--finished { }
+    .todo-title { }
+    .todo-title--not-finished { }
+    .todo-action-group { }
+    .todo-action { }
+    .todo-action--primary { }
+    .todo-action--secondary { }
+    .todo-action--danger { }
+  </style>
+</head>
+
+<body>
+  <div class="container-lg" id="tudouApp">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card my-3">
+          <div class="card-body">
+            <div class="d-flex flex-row align-items-center">
+              <h4 class="flex-fill mb-0">{{ ok && '🥔 土豆' }}</h4>
+              <div class="info">
+                <span>{{ user.name }}</span>
+                <span class="text-muted">|</span>
+                <span>{{ user.coins }} 💰</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">{{ dict('ui.today.title') }}</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item p-2" v-for="todo in todayTodos">
+              <template v-if="todo.status == 'todo_open'">
+                <p class="mb-1" :class="titleClass(todo)">
+                  <span style="white-space: pre-line;">{{ todo.event.description || todo.event.title }}</span>
+                </p>
+                <span class="d-flex flex-row">
+                  <!-- <small class="flex-fill" :class="statusClass(todo)">
+                    {{ dict(todo.status) }}
+                  </small> -->
+                  <small>
+                    <a class="text-black-50" @click="finishTodo(todo.id)" href="javascript:;">{{ dict('finish_todo') }}</a>&nbsp;|
+                    <a class="text-black-50" @click="pushTodo(todo.id)" href="javascript:;">{{ dict('push_todo') }}</a>&nbsp;|
+                    <a class="text-black-50" @click="cancelTodo(todo.id)" href="javascript:;">{{ dict('cancel_todo') }}</a>&nbsp;|
+                    <a class="text-black-50" @click="editTodo(todo)" href="javascript:;">{{ dict('edit_todo') }}</a>
+                  </small>
+                </span>
+              </template>
+              <template v-else>
+                <!-- <h5 class="mb-0 text-black-50"> -->
+                  <p class="mb-0 text-black-50">
+                    <!-- <small>{{ dict(todo.status) }}</small> -->
+                    <span class="text-line-through">{{ todo.event.title }}</span>
+                  </p>
+                <!-- </h5> -->
+              </template>
+            </li>
+
+            <div class="card-header" v-show="overdueTodos.length > 0">{{ dict('ui.overdue.title') }}</div>
+            <li class="list-group-item" v-for="todo in overdueTodos">
+              <h5 class="mb-1" :class="titleClass(todo)">
+                <small class="text-danger">{{ dict('todo_overdue') }}</small>
+                {{ todo.event.title }}
+              </h5>
+              <span>
+                <small>
+                  <a @click="renewTodo(todo.id)" href="javascript:;">{{ dict('renew_todo') }}</a>&nbsp;
+                </small>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card mb-3">
+          <div class="card-header d-flex flex-row">
+            <span class="flex-fill">
+              {{ !!form.id ? `${dict('ui.form.form_title.edit')} #${ form.id }` : dict('ui.form.form_title.create') }}
+            </span>
+            <a href="javascript:;" @click="resetForm">
+              {{ !!form.id ? dict('ui.form.form_cancel') : dict('ui.form.form_clear') }}
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <input :placeholder="dict('ui.form.field.title')" name="todoTitle" type="text" v-model="form.title" class="form-control">
+            </div>
+            <div class="form-group">
+              <textarea :placeholder="dict('ui.form.field.description')"  name="todoDesc" v-model="form.description" class="form-control"></textarea>
+            </div>
+            <div class="form-row">
+              <button :disabled="!form.title" class="btn btn-primary btn-block" @click="saveTodo">
+                {{ dict('ui.form.form_save') }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card mb-3">
+          <div class="card-header">{{ dict('ui.tomorraw.title') }}</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item" v-for="todo in tomorrawTodos">
+              <h5 class="mb-1" :class="titleClass(todo)">
+                <small :class="statusClass(todo)">{{ dict(todo.status) }}</small>
+                {{ todo.event.title }}
+              </h5>
+              <span>
+                <small>
+                  <a @click="pullTodo(todo.id)" href="javascript:;">{{ dict('pull_todo') }}</a>&nbsp;|
+                  <a @click="editTodo(todo)" href="javascript:;">{{ dict('edit_todo') }}</a>&nbsp;|
+                  <a @click="cancelTodo(todo.id)" href="javascript:;">{{ dict('cancel_todo') }}</a>
+                </small>
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">Settings</div>
+          <div class="card-body">
+            <form>
+              <div class="form-group">
+                <label for="settings.tz">Timezone</label>
+                <input type="text" v-model="settings.tz" id="settings.tz" class="form-control" readonly>
+              </div>
+              <div class="form-group">
+                <label for="settings.lang">Language</label>
+                <input type="text" v-model="settings.lang" id="settings.lang" class="form-control" readonly>
+              </div>
+              <div class="form-group">
+                <button class="btn btn-secondary">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4" hidden>
+        <div class="card">
+          <div class="card-header">Logs</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex flex-row" v-for="log in logs.slice(0, 12)">
+              <div class="flex-fill">
+                <span class="log-action" :class="actionClass(log)">
+                  <small>{{ dict(log.action) }}</small>
+                </span>
+                <span class="log-event">{{ log.event.title || ' - ' }}</span>
+              </div>
+              <span class="log-coins" :class="coinsClass(log)">
+                <small>{{ log.coins }}</small>
+              </span>
+            </li>
+            <li class="list-group-item text-center">
+              <a href="#">MORE</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const app = new Vue({
+        el: '#tudouApp',
+        data: {
+          ok: 1,
+          today: '',
+          tomorraw: '',
+          todayTodos: [],
+          tomorrawTodos: [],
+          textArea: '',
+          overdueTodos: [],
+          user: {},
+          settings: {},
+          form: {
+            id: 0,
+            title: '',
+            description: '',
+          },
+          logs: [],
+        },
+        async created() {
+          this.resetForm();
+          await this.reload();
+        },
+        methods: {
+          dict(name) {
+            const dictMap = new Map([
+              ['create_todo', '创建'],
+              ['edit_todo', '修改'],
+              ['push_todo', '明天'],
+              ['pull_todo', '今天'],
+              ['finish_todo', '完成'],
+              ['cancel_todo', '取消'],
+              ['remove_todo', '删除'],
+              ['renew_todo', '更新'],
+              ['copy_todo', '复制'], // fake
+              ['save_todo', '保存'], // fake
+              ['todo_open', '待办'],
+              ['todo_finished', '完成'],
+              ['todo_postponed', '延期'],
+              ['todo_canceled', '取消'],
+              ['todo_overdue', '超时'],
+              ['ui.today.title', '今天'],
+              ['ui.tomorraw.title', '明天'],
+              ['ui.overdue.title', '超时'],
+              ['ui.logs.title', '日志'],
+              ['ui.form.form_title.create', '添加'],
+              ['ui.form.form_title.edit', '修改'],
+              ['ui.form.field.title', '标题'],
+              ['ui.form.field.description', '描述(可选)'],
+              ['ui.form.form_save', '保存'],
+              ['ui.form.form_cancel', '取消'],
+              ['ui.form.form_clear', '清除']
+            ]);
+
+            return dictMap.get(name) || '[' + name + ']';
+          },
+          resetForm() {
+            this.form.id = 0;
+            this.form.title = '';
+            this.form.description = '';
+          },
+          editTodo(todoItem) {
+            this.form.id = todoItem.id;
+            this.form.title = todoItem.event.title;
+            this.form.description = todoItem.event.description;
+          },
+          saveTodo() {
+            if (!!this.form.id) {
+              this.updateTodo();
+            } else {
+              this.createTodo();
+            }
+          },
+          coinsClass(log) {
+            if (log.coins > 0) {
+              return 'text-green';
+            } else if (log.coins == 0) {
+              return 'text-muted';
+            }
+
+            return 'text-danger';
+          },
+          actionClass(logo) {
+            switch (logo.action) {
+              case 'create_todo':
+                return 'text-success';
+              case 'edit_todo':
+                return 'text-secondary';
+              case 'push_todo':
+                return 'text-secondary';
+              case 'pull_todo':
+                return 'text-secondary';
+              case 'cancel_todo':
+                return 'text-secondary';
+              case 'copy_todo':
+                return 'text-light';
+              case 'remove_todo':
+                return 'text-secondary';
+            }
+
+            return '?'
+          },
+          statusClass(todo) {
+            if (todo.status == 'todo_open') {
+              return 'text-success';
+            }
+
+            return 'text-muted'
+          },
+          titleClass(todo) {
+            if (todo.status == 'todo_open') {
+              return 'text-dark';
+            }
+
+            return 'text-black-50 text-line-through'
+          },
+          async reload() {
+            await this.getTodos();
+            await this.getProfile();
+          },
+          async getTodos() {
+            const {
+              todayTodos,
+              tomorrawTodos,
+              overdueTodos,
+            } = await getTodos();
+            this.todayTodos = todayTodos;
+            this.tomorrawTodos = tomorrawTodos;
+            this.overdueTodos = overdueTodos;
+          },
+          async createTodo() {
+            const { title, description } = this.form;
+            await createTodo(title, description);
+            await this.reload();
+            await this.resetForm();
+          },
+          async updateTodo() {
+            const { id, title, description } = this.form;
+            await updateTodo(id, title, description);
+            await this.reload();
+            await this.resetForm();
+          },
+          async pullTodo(id) {
+            await pullTodo(id);
+            await this.reload();
+          },
+          async pushTodo(id) {
+            await pushTodo(id);
+            await this.reload();
+          },
+          async finishTodo(id) {
+            await finishTodo(id);
+            await this.reload();
+          },
+          async cancelTodo(id) {
+            await cancelTodo(id);
+            await this.reload();
+          },
+          async removeTodo(id) {
+            await removeTodo(id);
+            await this.reload();
+          },
+          async renewTodo(id) {
+            await renewTodo(id);
+            await this.reload();
+          },
+          async getProfile() {
+            const user = await getProfile();
+            this.user = user;
+            this.settings = user.settings || {};
+          },
+        },
+      })
+
+      async function getTodos() {
+        const resp = await fetch('/api/my/todos');
+        const data = await resp.json();
+        const {
+          today,
+          tomorraw,
+        } = data;
+        const todayTodos = data[today];
+        const tomorrawTodos = data[tomorraw];
+        const overdueTodos = data['overdue'];
+        return {
+          today,
+          todayTodos,
+          tomorraw,
+          tomorrawTodos,
+          overdueTodos,
+        };
+      }
+      async function getProfile() {
+        const resp = await fetch('/api/my/profile');
+        const data = await resp.json();
+        const { user } = data;
+        return user;
+      }
+      async function createTodo(title, description) {
+        const resp = await fetch('/api/a/todo.create', {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title,
+            description,
+          }),
+          method: 'POST',
+        });
+      }
+      async function updateTodo(id, title, description) {
+        const resp = await fetch('/api/a/todo.update', {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id,
+            title,
+            description,
+          }),
+          method: 'POST',
+        });
+      }
+      async function pullTodo(id) {
+        const resp = await fetch(`/api/a/todo.pull?id=${id}`, {
+          method: 'POST',
+        });
+      }
+      async function pushTodo(id) {
+        const resp = await fetch(`/api/a/todo.push?id=${id}`, {
+          method: 'POST',
+        });
+      }
+      async function cancelTodo(id) {
+        const resp = await fetch(`/api/a/todo.cancel?id=${id}`, {
+          method: 'POST',
+        });
+      }
+      async function finishTodo(id) {
+        const resp = await fetch(`/api/a/todo.finish?id=${id}`, {
+          method: 'POST',
+        });
+      }
+      async function removeTodo(id) {
+        const resp = await fetch(`/api/a/todo.remove?id=${id}`, {
+          method: 'POST',
+        });
+      }
+      async function renewTodo(id) {
+        const resp = await fetch(`/api/a/todo.renew?id=${id}`, {
+          method: 'POST',
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>

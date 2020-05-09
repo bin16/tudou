@@ -4,354 +4,478 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tudou</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <title>Tudou Paper</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-  <script src="https://unpkg.com/vue-i18n/dist/vue-i18n.js"></script>
   <style>
-    .text-line-through {
+    :root {
+      --primary-color: teal;
+      /* --secondary-color: darkgray; */
+      --danger-color: red;
+      --border-color: #bbb;
+      --text-color: #333;
+      --tab-color: #eee;
+      --tab-hover-color: #f9f9f9;
+      --tab-active-color: #fff;
+      --font-mono: 'Courier New', Courier, monospace;
+      --font-sans-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      --font-serif: Georgia, 'Times New Roman', Times, serif;
+    }
+    html {
+      color: var(--text-color);
+      font-family: var(--font-sans-serif);
+    }
+    .paper {
+      margin: 2rem auto;
+      width: 640px;
+      padding: 0rem;
+      box-shadow: 2px 2px 5px var(--border-color);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .paper-tabs {
+      display: flex;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--tab-active-color);
+    }
+    .paper-tab {
+      padding: .5rem;
+      font: .8rem/1rem var(--font-sans-serif);
+      color: #999;
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--tab-color);
+    }
+    .paper-tab--active {
+      color: var(--text-color);
+      border-bottom: none;
+      background-color: var(--tab-active-color);
+      box-shadow: 0 2px 0 var(--primary-color) inset;
+    }
+    .paper-tab:last-child {
+      border-right: none;
+    }
+    .paper-tab:not(.paper-tab--active) {
+      background-color: var(--tab-hover-color);
+    }
+    .paper-tab,
+    .paper-tab > a {
+      color: #999;
+      text-decoration: none;
+      user-select: none;
+    }
+    .paper-tab--active,
+    .paper-tab--active > a {
+      color: var(--text-color);
+    }
+    .todo-list {
+      display: block;
+      margin: 0;
+      height: 720px;
+      padding: 0;
+      overflow-y: auto;
+    }
+    .todo {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      list-style-type: none;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .todo:last-child {
+      /* border-bottom: none; */
+    }
+    .todo-icon {
+      width: 3rem;
+      padding: 1rem 0;
+      text-align: center;
+      user-select: none;
+    }
+    .todo-tag {
+      width: 4px;
+      border-left: 1px solid var(--primary-color);
+      border-right: 1px solid var(--primary-color);
+    }
+    .todo-content {
+      padding: 0 1rem;
+    }
+    .todo-text {
+      display: block;
+      padding: 1rem 0;
+      font: .85rem / 1.2 var(--font-serif);
+      white-space: pre-line;
+    }
+    .todo--not-open .todo-text {
+      color: #888;
       text-decoration: line-through;
     }
-    .todo-status {
+    .todo-action-group {
       font-size: .8rem;
+      /* margin-bottom: .2rem; */
+      display: flex;
+      justify-content: flex-start;
     }
-    .todo-status--finished { }
-    .todo-title { }
-    .todo-title--not-finished { }
-    .todo-action-group { }
-    .todo-action { }
-    .todo-action--primary { }
-    .todo-action--secondary { }
-    .todo-action--danger { }
+    .todo-action {
+      display: inline-block;
+      padding: 0 .2rem;
+      font-size: .8rem;
+      color: #888;
+      text-decoration: none;
+    }
+    .todo-action:first-child {
+      padding-left: 0;
+    }
+    .todo-action:hover {
+      color: var(--primary-color);
+      text-decoration: underline;
+    }
+    .todo-action-group-wrapper {
+      display: inline-flex;
+      align-items: center;
+      float: right;
+      height: 3rem;
+      padding-left: 1rem;
+      clear: both;
+    }
+
+
+    .hover-color-primary:hover {
+      color: var(--primary-color);
+    }
+    .hover-color-danger:hover {
+      color: var(--danger-color);
+    }
+    .hover-color-secondary:hover {
+      color: var(--secondary-color);
+    }
+    .flex-row {
+      display: flex;
+    }
+    .flex-fill {
+      flex: 1;
+    }
+    .justify-content-end {
+      justify-content: flex-end;
+    }
+
+    .font-mono {
+      font-family: var(--font-mono);
+    }
+    .font-sans-serif {
+      font-family: var(--font-sans-serif);
+    }
+    .font-serif {
+      font-family: var(--font-serif);
+    }
+    .icon {
+      display: block;
+      margin: auto;
+      width: 1rem;
+      height: 1rem;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: .5;
+    }
+    .icon--2x {
+      transform: scale(2);
+    }
+    .icon--3x {
+      transform: scale(3);
+    }
+    .icon--finished {
+      background-image: url(/icon-finished.svg);
+    }
+    .icon--canceled {
+      background-image: url(/icon-canceled.svg);
+    }
+    .icon--postponed {
+      background-image: url(/icon-postponed.svg);
+    }
+
+    .paper-container {
+      padding: 1rem;
+    }
   </style>
 </head>
 
 <body>
-  <div class="container-lg" id="tudouApp">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="card my-3">
-          <div class="card-body">
-            <div class="d-flex flex-row align-items-center">
-              <h4 class="flex-fill mb-0">{{ ok && '🥔 土豆' }}</h4>
-              <div class="info">
-                <span>{{ user.name }}</span>
-                <span class="text-muted">|</span>
-                <span>{{ user.coins }} 💰</span>
-              </div>
-            </div>
-          </div>
+  <div id="app">
+    <div class="paper">
+      <div class="paper-tabs">
+        <div class="paper-tab tab-tudou" :class="view === TudouView && 'paper-tab--active'">
+          <a @click="changeView(TudouView)" href="javascript:;">Tudou Paper</a>
+        </div>
+        <div class="paper-tab tab-overdue" :class="view === OverdueView && 'paper-tab--active'">
+          <a @click="changeView(OverdueView)" href="javascript:;">Overdue</a>
+        </div>
+        <div class="paper-tab tab-today" :class="view === TodayView && 'paper-tab--active'">
+          <a @click="changeView(TodayView)" href="javascript:;">Today</a>
+        </div>
+        <div class="paper-tab tab-tomorraw" :class="view === TomorrawView && 'paper-tab--active'">
+          <a @click="changeView(TomorrawView)" href="javascript:;">Tomorraw</a>
+        </div>
+        <div class="paper-tab flex-fill"></div>
+        <div class="paper-tab tab-settings" :class="view === SettingsView && 'paper-tab--active'">
+          <a @click="changeView(SettingsView)" href="javascript:;">Settings</a>
+        </div>
+        <div class="paper-tab tab-profile" :class="view === ProfileView && 'paper-tab--active'">
+          <a @click="changeView(ProfileView)" href="javascript:;">{{ user.name }} ({{ user.coins }}💰)</a>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header">{{ dict('ui.today.title') }}</div>
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item p-2" v-for="todo in todayTodos">
-              <template v-if="todo.status == 'todo_open'">
-                <p class="mb-1" :class="titleClass(todo)">
-                  <span style="white-space: pre-line;">{{ todo.event.description || todo.event.title }}</span>
-                </p>
-                <span class="d-flex flex-row">
-                  <!-- <small class="flex-fill" :class="statusClass(todo)">
-                    {{ dict(todo.status) }}
-                  </small> -->
-                  <small>
-                    <a class="text-black-50" @click="finishTodo(todo.id)" href="javascript:;">{{ dict('finish_todo') }}</a>&nbsp;|
-                    <a class="text-black-50" @click="pushTodo(todo.id)" href="javascript:;">{{ dict('push_todo') }}</a>&nbsp;|
-                    <a class="text-black-50" @click="cancelTodo(todo.id)" href="javascript:;">{{ dict('cancel_todo') }}</a>&nbsp;|
-                    <a class="text-black-50" @click="editTodo(todo)" href="javascript:;">{{ dict('edit_todo') }}</a>
-                  </small>
-                </span>
-              </template>
-              <template v-else>
-                <!-- <h5 class="mb-0 text-black-50"> -->
-                  <p class="mb-0 text-black-50">
-                    <!-- <small>{{ dict(todo.status) }}</small> -->
-                    <span class="text-line-through">{{ todo.event.title }}</span>
-                  </p>
-                <!-- </h5> -->
-              </template>
-            </li>
-
-            <div class="card-header" v-show="overdueTodos.length > 0">{{ dict('ui.overdue.title') }}</div>
-            <li class="list-group-item" v-for="todo in overdueTodos">
-              <h5 class="mb-1" :class="titleClass(todo)">
-                <small class="text-danger">{{ dict('todo_overdue') }}</small>
-                {{ todo.event.title }}
-              </h5>
-              <span>
-                <small>
-                  <a @click="renewTodo(todo.id)" href="javascript:;">{{ dict('renew_todo') }}</a>&nbsp;
-                </small>
-              </span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card mb-3">
-          <div class="card-header d-flex flex-row">
-            <span class="flex-fill">
-              {{ !!form.id ? `${dict('ui.form.form_title.edit')} #${ form.id }` : dict('ui.form.form_title.create') }}
-            </span>
-            <a href="javascript:;" @click="resetForm">
-              {{ !!form.id ? dict('ui.form.form_cancel') : dict('ui.form.form_clear') }}
-            </a>
-          </div>
-          <div class="card-body">
-            <div class="form-group">
-              <input :placeholder="dict('ui.form.field.title')" name="todoTitle" type="text" v-model="form.title" class="form-control">
-            </div>
-            <div class="form-group">
-              <textarea :placeholder="dict('ui.form.field.description')"  name="todoDesc" v-model="form.description" class="form-control"></textarea>
-            </div>
-            <div class="form-row">
-              <button :disabled="!form.title" class="btn btn-primary btn-block" @click="saveTodo">
-                {{ dict('ui.form.form_save') }}
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="card mb-3">
-          <div class="card-header">{{ dict('ui.tomorraw.title') }}</div>
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item" v-for="todo in tomorrawTodos">
-              <h5 class="mb-1" :class="titleClass(todo)">
-                <small :class="statusClass(todo)">{{ dict(todo.status) }}</small>
-                {{ todo.event.title }}
-              </h5>
-              <span>
-                <small>
-                  <a @click="pullTodo(todo.id)" href="javascript:;">{{ dict('pull_todo') }}</a>&nbsp;|
-                  <a @click="editTodo(todo)" href="javascript:;">{{ dict('edit_todo') }}</a>&nbsp;|
-                  <a @click="cancelTodo(todo.id)" href="javascript:;">{{ dict('cancel_todo') }}</a>
-                </small>
-              </span>
-            </li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-header">Settings</div>
-          <div class="card-body">
-            <form>
-              <div class="form-group">
-                <label for="settings.tz">Timezone</label>
-                <input type="text" v-model="settings.tz" id="settings.tz" class="form-control" readonly>
-              </div>
-              <div class="form-group">
-                <label for="settings.lang">Language</label>
-                <input type="text" v-model="settings.lang" id="settings.lang" class="form-control" readonly>
-              </div>
-              <div class="form-group">
-                <button class="btn btn-secondary">Save</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4" hidden>
-        <div class="card">
-          <div class="card-header">Logs</div>
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item d-flex flex-row" v-for="log in logs.slice(0, 12)">
-              <div class="flex-fill">
-                <span class="log-action" :class="actionClass(log)">
-                  <small>{{ dict(log.action) }}</small>
-                </span>
-                <span class="log-event">{{ log.event.title || ' - ' }}</span>
-              </div>
-              <span class="log-coins" :class="coinsClass(log)">
-                <small>{{ log.coins }}</small>
-              </span>
-            </li>
-            <li class="list-group-item text-center">
-              <a href="#">MORE</a>
-            </li>
-          </ul>
-        </div>
-      </div>
+      <today-view :todos="todayTodos" v-show="view === TodayView"></today-view>
+      <tomorraw-view :todos="tomorrawTodos" v-show="view === TomorrawView"></tomorraw-view>
+      <overdue-view :todos="overdueTodos" v-show="view === OverdueView"></overdue-view>
+      <settings-view v-show="view === SettingsView"></settings-view>
+      <profile-view v-show="view === ProfileView"></profile-view>
+      <tudou-view v-show="view === TudouView"></tudou-view>
     </div>
   </div>
+  <template id="todo-item-template">
+    <li class="todo" :class="todo.status == 'todo_open' ? 'todo--open' : 'todo--not-open'">
+      <div class="todo-icon">
+        <span v-show="todo.status == 'todo_open'"></span>
+        <span v-show="todo.status == 'todo_finished'">
+          <i class="icon icon--2x icon--finished"></i>
+        </span>
+        <span v-show="todo.status == 'todo_postponed'">
+          <i class="icon icon--2x icon--postponed"></i>
+        </span>
+        <span v-show="todo.status == 'todo_canceled'">
+          <i class="icon icon--2x icon--canceled"></i>
+        </span>
+      </div>
+      <div class="todo-tag">
+        
+      </div>
+      <div class="todo-content flex-fill">
+        <div class="todo-action-group-wrapper">
+          <slot name="action-group" v-bind:todo="todo"></slot>
+        </div>
+        <span class="todo-text">{{ todo.event.content }}</span>
+        <slot></slot>
+      </div>
+    </li>
+  </template>
+  <template id="todo-list-template">
+    <ul class="todo-list">
+      <slot></slot>
+    </ul>
+  </template>
+  <template id="today-view-template">
+    <todo-list>
+      <todo-item  
+        :todo="todo" 
+        :finishTodo="finishTodo"
+        :key="todo.id" v-for="todo in todos">
+        <template v-slot:action-group="slotProps" >
+          <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
+            <a @click="finishTodo(slotProps.todo)" class="todo-action hover-color-primary" href="javascript:;">完成</a>
+            <a @click="pushTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">明天</a>
+            <a @click="editTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
+            <a @click="cancelTodo(slotProps.todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+          </div>
+        </template>
+      </todo-item>
+    </todo-list>
+  </template>
+  <template id="tomorraw-view-template">
+    <todo-list>
+      <todo-item :key="todo.id" :todo="todo" v-for="todo in todos">
+        <template v-slot:action-group="slotProps" >
+          <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
+            <a @click="pullTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">今天</a>
+            <a @click="editTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
+            <a @click="cancelTodo(todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+          </div>
+        </template>
+      </todo-item>
+    </todo-list> 
+  </template>
+  <template id="overdue-view-template">
+    <todo-list>
+      <todo-item :key="todo.id" :todo="todo" v-for="todo in todos">
+        <template v-slot:action-group="slotProps" >
+          <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
+            <a @click="renewTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">更新</a>
+          </div>
+        </template>
+      </todo-item>
+    </todo-list>  
+  </template>
+  <template id="settings-view-template">
+    <div class="paper-container">
+      <span class="font-mono">Settings</span>
+    </div>
+  </template>
+  <template id="profile-view-template">
+    <div class="paper-container">
+      <span class="font-mono">Profile</span>
+    </div>
+  </template>
+  <template id="tudou-view-template">
+    <div class="paper-container">
+      <pre>
+
+        Tudou Paper v0.1
+        ================================================
+
+        Thanks
+
+        * Gin         https://gin-gonic.com/
+                      https://github.com/gin-gonic/gin
+
+        * Gorm        https://gorm.io/
+                      https://github.com/jinzhu/gorm
+
+        * Vue.js      https://vuejs.org
+                      https://github.com/vuejs/vue
+
+        * Cloudflare  https://cloudflare.com
+        ================================================
+      </pre>
+    </div>
+  </template>
   <script>
     (function () {
-      const app = new Vue({
-        el: '#tudouApp',
-        data: {
-          ok: 1,
-          today: '',
-          tomorraw: '',
-          todayTodos: [],
-          tomorrawTodos: [],
-          textArea: '',
-          overdueTodos: [],
-          user: {},
-          settings: {},
-          form: {
-            id: 0,
-            title: '',
-            description: '',
+      window.addEventListener('DOMContentLoaded', function() {
+        const TudouView = 'tudou-view';
+        const TodayView = 'today-view';
+        const TomorrawView = 'tomorraw-view';
+        const OverdueView = 'overdue-view';
+        const SettingsView = 'settings-view';
+        const ProfileView = 'profile-view';
+        const EventBus = new Vue();
+        Vue.mixin({
+          methods: {
+            reload: () => EventBus.$emit('changed'),
           },
-          logs: [],
-        },
-        async created() {
-          this.resetForm();
-          await this.reload();
-        },
-        methods: {
-          dict(name) {
-            const dictMap = new Map([
-              ['create_todo', '创建'],
-              ['edit_todo', '修改'],
-              ['push_todo', '明天'],
-              ['pull_todo', '今天'],
-              ['finish_todo', '完成'],
-              ['cancel_todo', '取消'],
-              ['remove_todo', '删除'],
-              ['renew_todo', '更新'],
-              ['copy_todo', '复制'], // fake
-              ['save_todo', '保存'], // fake
-              ['todo_open', '待办'],
-              ['todo_finished', '完成'],
-              ['todo_postponed', '延期'],
-              ['todo_canceled', '取消'],
-              ['todo_overdue', '超时'],
-              ['ui.today.title', '今天'],
-              ['ui.tomorraw.title', '明天'],
-              ['ui.overdue.title', '超时'],
-              ['ui.logs.title', '日志'],
-              ['ui.form.form_title.create', '添加'],
-              ['ui.form.form_title.edit', '修改'],
-              ['ui.form.field.title', '标题'],
-              ['ui.form.field.description', '描述(可选)'],
-              ['ui.form.form_save', '保存'],
-              ['ui.form.form_cancel', '取消'],
-              ['ui.form.form_clear', '清除']
-            ]);
-
-            return dictMap.get(name) || '[' + name + ']';
-          },
-          resetForm() {
-            this.form.id = 0;
-            this.form.title = '';
-            this.form.description = '';
-          },
-          editTodo(todoItem) {
-            this.form.id = todoItem.id;
-            this.form.title = todoItem.event.title;
-            this.form.description = todoItem.event.description;
-          },
-          saveTodo() {
-            if (!!this.form.id) {
-              this.updateTodo();
-            } else {
-              this.createTodo();
+        });
+        Vue.component('todo-list', {
+          template: '#todo-list-template',
+          props: ['todos'],
+        });
+        Vue.component('todo-item', {
+          template: '#todo-item-template',
+          props: ['todo'],
+          methods: {
+            hello() {
+              console.log('Hello World!');
             }
           },
-          coinsClass(log) {
-            if (log.coins > 0) {
-              return 'text-green';
-            } else if (log.coins == 0) {
-              return 'text-muted';
-            }
+        });
+        Vue.component('today-view', {
+          template: '#today-view-template',
+          props: ['todos'],
+          methods: {
+            async pushTodo(todo) {
+              await pushTodo(todo.id);
+              await this.reload();
+            },
+            async finishTodo(todo) {
+              await finishTodo(todo.id);
+              await this.reload();
+            },
+            async cancelTodo(todo) {
+              await cancelTodo(todo.id);
+              await this.reload();
+            },
+          },
+        });
+        Vue.component('tomorraw-view', {
+          template: '#tomorraw-view-template',
+          props: ['todos'],
+          methods: {
+            async pullTodo(todo) {
+              await pullTodo(todo.id);
+              await this.reload();
+            },
+            async cancelTodo(todo) {
+              await cancelTodo(todo.id);
+              await this.reload();
+            },
+          }
+        });
+        Vue.component('overdue-view', {
+          template: '#overdue-view-template',
+          props: ['todos'],
+          methods: {
+            async renewTodo(todo) {
+              await renewTodo(todo.id);
+              await this.reload();
+            },
+          },
+        });
+        Vue.component('settings-view', {
+          template: '#settings-view-template',
+        });
+        Vue.component('profile-view', {
+          template: '#profile-view-template',
+        });
+        Vue.component('tudou-view', {
+          template: '#tudou-view-template',
+        });
+        new Vue({
+          el: '#app',
+          data: {
+            user: {},
+            todayTodos: [],
+            tomorrawTodos: [],
+            overdueTodos: [],
 
-            return 'text-danger';
+            view: TodayView,
+            TudouView,
+            TodayView,
+            TomorrawView,
+            OverdueView,
+            SettingsView,
+            ProfileView,
           },
-          actionClass(logo) {
-            switch (logo.action) {
-              case 'create_todo':
-                return 'text-success';
-              case 'edit_todo':
-                return 'text-secondary';
-              case 'push_todo':
-                return 'text-secondary';
-              case 'pull_todo':
-                return 'text-secondary';
-              case 'cancel_todo':
-                return 'text-secondary';
-              case 'copy_todo':
-                return 'text-light';
-              case 'remove_todo':
-                return 'text-secondary';
-            }
-
-            return '?'
+          created() {
+            this.reload();
+            EventBus.$on('changed', () => {
+              this.reload();
+            });
           },
-          statusClass(todo) {
-            if (todo.status == 'todo_open') {
-              return 'text-success';
-            }
-
-            return 'text-muted'
+          methods: {
+            changeView(viewName) {
+              this.view = viewName;
+            },
+            reload() {
+              this.getTodos();
+              this.getProfile();
+            },
+            async getTodos() {
+              const { todayTodos, tomorrawTodos, overdueTodos, } = await getTodos();
+              this.todayTodos = todayTodos;
+              this.tomorrawTodos = tomorrawTodos;
+              this.overdueTodos = overdueTodos;
+            },
+            async getProfile() {
+              const user = await getProfile();
+              this.user = user;
+              this.settings = user.settings || {};
+            },
+            async createTodo() {
+              const { content } = this.form;
+              await createTodo(content);
+              await this.reload();
+              await this.resetForm();
+            },
+            async updateTodo() {
+              const { id, content } = this.form;
+              await updateTodo(id, content);
+              await this.reload();
+              await this.resetForm();
+            },
+            // async removeTodo(todo) {
+            //   await removeTodo(todo.id);
+            //   await this.reload();
+            // },
           },
-          titleClass(todo) {
-            if (todo.status == 'todo_open') {
-              return 'text-dark';
-            }
-
-            return 'text-black-50 text-line-through'
-          },
-          async reload() {
-            await this.getTodos();
-            await this.getProfile();
-          },
-          async getTodos() {
-            const {
-              todayTodos,
-              tomorrawTodos,
-              overdueTodos,
-            } = await getTodos();
-            this.todayTodos = todayTodos;
-            this.tomorrawTodos = tomorrawTodos;
-            this.overdueTodos = overdueTodos;
-          },
-          async createTodo() {
-            const { title, description } = this.form;
-            await createTodo(title, description);
-            await this.reload();
-            await this.resetForm();
-          },
-          async updateTodo() {
-            const { id, title, description } = this.form;
-            await updateTodo(id, title, description);
-            await this.reload();
-            await this.resetForm();
-          },
-          async pullTodo(id) {
-            await pullTodo(id);
-            await this.reload();
-          },
-          async pushTodo(id) {
-            await pushTodo(id);
-            await this.reload();
-          },
-          async finishTodo(id) {
-            await finishTodo(id);
-            await this.reload();
-          },
-          async cancelTodo(id) {
-            await cancelTodo(id);
-            await this.reload();
-          },
-          async removeTodo(id) {
-            await removeTodo(id);
-            await this.reload();
-          },
-          async renewTodo(id) {
-            await renewTodo(id);
-            await this.reload();
-          },
-          async getProfile() {
-            const user = await getProfile();
-            this.user = user;
-            this.settings = user.settings || {};
-          },
-        },
-      })
-
+        });
+      });
       async function getTodos() {
         const resp = await fetch('/api/my/todos');
         const data = await resp.json();
@@ -362,6 +486,7 @@
         const todayTodos = data[today];
         const tomorrawTodos = data[tomorraw];
         const overdueTodos = data['overdue'];
+      
         return {
           today,
           todayTodos,
@@ -376,28 +501,21 @@
         const { user } = data;
         return user;
       }
-      async function createTodo(title, description) {
+      async function createTodo(content) {
         const resp = await fetch('/api/a/todo.create', {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            title,
-            description,
-          }),
+          body: JSON.stringify({ content, }),
           method: 'POST',
         });
       }
-      async function updateTodo(id, title, description) {
+      async function updateTodo(id, content) {
         const resp = await fetch('/api/a/todo.update', {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            id,
-            title,
-            description,
-          }),
+          body: JSON.stringify({ id, content, }),
           method: 'POST',
         });
       }

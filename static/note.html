@@ -71,7 +71,6 @@
         mdlink: s => {
           const results = s.trim().slice(1, s.length - 1).split('](');
           const [text, href] = results;
-          console.log(results);
           return `<a href="${href}">${text}</a>`;
         },
       }
@@ -107,7 +106,6 @@
         let key = '';
         let head = 0;
         while (head <= s.length) {
-          console.log(key);
           if (head === s.length) { // End
             buf.push(key);
             key = '';
@@ -274,6 +272,7 @@
       }
     })();
     (function() {
+      const worker = new Worker('/worker.js');
       const vue = new Vue({
         el: '#note-app',
         data: {
@@ -355,6 +354,12 @@
           method: 'POST',
         });
       }
+      worker.onmessage = (e) => {
+        console.log('biu1', e);
+      }
+      worker.postMessage([11, 22], {
+        what: '222',
+      });
     })();
   </script>
 </body>

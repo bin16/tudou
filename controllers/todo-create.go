@@ -41,8 +41,9 @@ func UpdateTodo(c *gin.Context) {
 	err := db.DB.Debug().Transaction(func(tx *gorm.DB) error {
 		var err error
 		// 1. Update todo
-		todo.Event.Title = values.Title
-		todo.Event.Description = values.Description
+		todo.Event.Content = values.Content
+		// todo.Event.Title = values.Title
+		// todo.Event.Description = values.Description
 		err = db.DB.Save(&todo).Error
 		if err != nil {
 			return err
@@ -172,10 +173,11 @@ func CreateTodo(c *gin.Context) {
 		// 1. Create todo
 		todo := models.Todo{
 			Event: models.Event{
-				Title:       values.Title,
-				Description: values.Description,
-				Status:      vars.EventStatusOpen,
-				UserID:      user.ID,
+				// Title:       values.Title,
+				// Description: values.Description,
+				Content: values.Content,
+				Status:  vars.EventStatusOpen,
+				UserID:  user.ID,
 			},
 			User:   *user,
 			Status: vars.TodoStatusOpen,
