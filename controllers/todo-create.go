@@ -215,3 +215,61 @@ func CreateTodo(c *gin.Context) {
 
 	c.Status(http.StatusCreated)
 }
+
+// CloneTodo POST /a/todo.clone
+func CloneTodo(c *gin.Context) {
+	todoID := getTodoID(c)
+
+	todo := models.Todo{ID: todoID}
+	if err := db.DB.Preload("Event").First(&todo).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	user := c.MustGet("user").(*models.User)
+
+	err := db.DB.Debug().Transaction(func(tx *gorm.DB) error {
+		var err error
+		// 1. Create todo & event
+		todo := models.Todo{
+			Event: models.Event{
+				Content: todo.Event.Content,
+				Status:  vars.EventStatusOpen,
+				UserID:  user.ID,
+			},
+			User:   *user,
+			Status: vars.TodoStatusOpen,
+			UserID: user.ID,
+			Date:   getTomorraw(),
+		}
+		if err := db.DB.Create(&todo).Related(&todo.Event).Error; err != nil {
+			return err
+		}
+		// 2. Change user's coins
+		earnedCoins := calcCoins(vars.ActionCloneTodo)
+		user.Coins += earnedCoins
+		err = tx.Save(user).Error
+		if err != nil {
+			return err
+		}
+		// 3. log
+		err = tx.Create(&models.Log{
+			TodoID:  todo.ID,
+			EventID: todo.EventID,
+			UserID:  user.ID,
+			Action:  vars.ActionCloneTodo,
+			Coins:   earnedCoins,
+		}).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		c.JSON(errorJSON(err))
+		return
+	}
+
+	c.Status(http.StatusCreated)
+}

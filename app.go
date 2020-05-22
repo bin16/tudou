@@ -36,6 +36,7 @@ func main() {
 		actions.POST("/todo.update", controllers.UpdateTodo)
 		// Tomorraw
 		actions.POST("/todo.create", controllers.CreateTodo)
+		actions.POST("/todo.clone", controllers.CloneTodo)
 		// Today
 		actions.POST("/todo.finish", controllers.FinishTodo)
 		actions.POST("/todo.cancel", controllers.CancelTodo)
@@ -51,6 +52,8 @@ func main() {
 		actions.POST("/note.create", controllers.CreateNote)
 		actions.POST("/note.update", controllers.UpdateNote)
 		actions.POST("/note.remove", controllers.RemoveNote)
+		// File
+		actions.POST("/file.upload", controllers.UploadFile)
 	}
 
 	r.Run(":2358")

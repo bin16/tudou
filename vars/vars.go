@@ -11,6 +11,7 @@ const (
 	TodoStatusOverdue   = "todo_overdue"
 
 	ActionCreateTodo = "create_todo" // +1
+	ActionCloneTodo  = "clone_todo"  // +1
 	ActionFinishTodo = "finish_todo" // +1
 	ActionPushTodo   = "push_todo"   // -1
 	ActionCopyTodo   = "copy_todo"   // +0

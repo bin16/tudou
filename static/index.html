@@ -9,8 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <style>
     :root {
-      --primary-color: teal;
-      /* --secondary-color: darkgray; */
+      --primary-color: wheat;
       --danger-color: red;
       --border-color: #bbb;
       --text-color: #333;
@@ -207,6 +206,68 @@
     .paper-container {
       padding: 1rem;
     }
+
+    .icon-checked,
+    .icon-arrow-right,
+    .icon-cross {
+      position: relative;
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      font-size: 1rem;
+    }
+    .icon-checked::before {
+      content: '';
+      box-sizing: border-box;
+      display: block;
+      width: 1.2em;
+      height: .7em;
+      border-left: .25em solid #000;
+      border-bottom: .25em solid #000;
+      transform-origin: center;
+      transform: rotate(-45deg);
+    }
+    .icon-arrow-right::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-top: .25em solid #000;
+      border-right: .25em solid #000;
+      transform-origin: center;
+      transform: rotate(45deg);
+    }
+    .icon-arrow-right::after {
+      content: '';
+      position: absolute;
+      top: .375em;
+      right: .15rem;
+      box-sizing: border-box;
+      width: 1em;
+      height: .25em;
+      background-color: black;
+    }
+    .icon-cross::before,
+    .icon-cross::after {
+      content: '';
+      position: absolute;
+      left: .25em;
+      top: -.1em;
+      display: block;
+      width: .25em;
+      height: 1.2em;
+      background-color: black;
+    }
+    .icon-cross::before {
+      transform: rotate(45deg);
+    }
+    .icon-cross::after {
+      transform: rotate(-45deg);
+    }
   </style>
 </head>
 
@@ -215,23 +276,23 @@
     <div class="paper">
       <div class="paper-tabs">
         <div class="paper-tab tab-tudou" :class="view === TudouView && 'paper-tab--active'">
-          <a @click="changeView(TudouView)" href="javascript:;">Tudou Paper</a>
+          <a @click="navigate(TudouView)" href="javascript:;">Tudou Paper</a>
         </div>
         <div class="paper-tab tab-overdue" :class="view === OverdueView && 'paper-tab--active'">
-          <a @click="changeView(OverdueView)" href="javascript:;">Overdue</a>
+          <a @click="navigate(OverdueView)" href="javascript:;">Overdue</a>
         </div>
         <div class="paper-tab tab-today" :class="view === TodayView && 'paper-tab--active'">
-          <a @click="changeView(TodayView)" href="javascript:;">Today</a>
+          <a @click="navigate(TodayView)" href="javascript:;">Today</a>
         </div>
         <div class="paper-tab tab-tomorraw" :class="view === TomorrawView && 'paper-tab--active'">
-          <a @click="changeView(TomorrawView)" href="javascript:;">Tomorraw</a>
+          <a @click="navigate(TomorrawView)" href="javascript:;">Tomorraw</a>
         </div>
         <div class="paper-tab flex-fill"></div>
         <div class="paper-tab tab-settings" :class="view === SettingsView && 'paper-tab--active'">
-          <a @click="changeView(SettingsView)" href="javascript:;">Settings</a>
+          <a @click="navigate(SettingsView)" href="javascript:;">Settings</a>
         </div>
         <div class="paper-tab tab-profile" :class="view === ProfileView && 'paper-tab--active'">
-          <a @click="changeView(ProfileView)" href="javascript:;">{{ user.name }} ({{ user.coins }}💰)</a>
+          <a @click="navigate(ProfileView)" href="javascript:;">{{ user.name }} ({{ user.coins }}💰)</a>
         </div>
       </div>
       <today-view :todos="todayTodos" v-show="view === TodayView"></today-view>
@@ -248,13 +309,16 @@
       <div class="todo-icon">
         <span v-if="todo.status == 'todo_open'"></span>
         <span v-else-if="todo.status == 'todo_finished'">
-          <i class="icon icon--2x icon--finished"></i>
+          <!-- <i class="icon icon--2x icon--finished"></i> -->
+          <i class="icon-checked"></i>
         </span>
         <span v-else-if="todo.status == 'todo_postponed'">
-          <i class="icon icon--2x icon--postponed"></i>
+          <!-- <i class="icon icon--2x icon--postponed"></i> -->
+          <i class="icon-arrow-right"></i>
         </span>
         <span v-else="todo.status == 'todo_canceled'">
-          <i class="icon icon--2x icon--canceled"></i>
+          <!-- <i class="icon icon--2x icon--canceled"></i> -->
+          <i class="icon-cross"></i>
         </span>
       </div>
       <div class="todo-tag">
@@ -268,20 +332,6 @@
       </div>
     </li>
   </template>
-  <!-- <template id="todo-item-form-template">
-    <li class="todo todo-form">
-      <div class="todo-icon"></div>
-      <div class="todo-tag"></div>
-      <div class="todo-content flex-fill">
-        <div class="todo-action-group-wrapper">
-          <slot name="action-group" v-bind:todo="todo"></slot>
-        </div>
-        <span class="todo-text">
-          <textarea v-model="form.content">{{ todo.event.content }}</textarea>
-        </span>
-      </div>
-    </li>
-  </template> -->
   <template id="todo-list-template">
     <ul class="todo-list">
       <slot></slot>
@@ -309,11 +359,14 @@
           :todo="todo" 
           :key="todo.id" v-else>
           <template v-slot:action-group="slotProps" >
-            <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
+            <div :key="slotProps.todo.id" class="todo-action-group" v-if="slotProps.todo.status == 'todo_open'">
               <a @click="finishTodo(slotProps.todo)" class="todo-action hover-color-primary" href="javascript:;">完成</a>
               <a @click="pushTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">明天</a>
               <a @click="editTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
               <a @click="cancelTodo(slotProps.todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+            </div>
+            <div :key="slotProps.todo.id" class="todo-action-group" v-else>
+              <a @click="cloneTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">复制</a>
             </div>
           </template>
         </todo-item>
@@ -426,6 +479,7 @@
         Vue.mixin({
           methods: {
             reload: () => EventBus.$emit('changed'),
+            navigate: viewName => EventBus.$emit('viewChange', viewName),
           },
         });
         Vue.component('todo-list', {
@@ -469,6 +523,11 @@
               await updateTodo(this.form.id, this.form.content);
               await this.reload();
               this.resetForm();
+            },
+            async cloneTodo(todo) {
+              await cloneTodo(todo.id);
+              await this.reload();
+              this.navigate(TomorrawView);
             },
             editTodo(todo) {
               this.form = { content: todo.event.content, id: todo.id };
@@ -550,11 +609,11 @@
             EventBus.$on('changed', () => {
               this.reload();
             });
+            EventBus.$on('viewChange', viewName => {
+              this.view = viewName;
+            });
           },
           methods: {
-            changeView(viewName) {
-              this.view = viewName;
-            },
             reload() {
               this.getTodos();
               this.getProfile();
@@ -662,6 +721,11 @@
       }
       async function renewTodo(id) {
         const resp = await fetch(`/api/a/todo.renew?id=${id}`, {
+          method: 'POST',
+        });
+      }
+      async function cloneTodo(id) {
+        const resp = await fetch(`/api/a/todo.clone?id=${id}`, {
           method: 'POST',
         });
       }
