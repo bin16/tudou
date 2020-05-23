@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// Log for user actions
 type Log struct {
 	ID        int       `json:"id"`
 	EventID   int       `json:"-"`

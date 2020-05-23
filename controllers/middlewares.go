@@ -43,5 +43,10 @@ func ShouldAuthed(c *gin.Context) {
 }
 
 func keyFunc(token *jwt.Token) (interface{}, error) {
-	return []byte("h908H*Hjhoiwh809h78gs6^$E^TRCVJM(82y,l;L?<O@E)Y0"), nil
+	tokenRecord := models.TokenRecord{Token: token.Raw}
+	if err := db.DB.First(&tokenRecord).Error; err != nil {
+		return []byte{}, err
+	}
+
+	return tokenRecord.Key, nil
 }

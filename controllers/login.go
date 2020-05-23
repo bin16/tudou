@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -19,6 +20,9 @@ func PostLogin(c *gin.Context) {
 		return
 	}
 
+	key := make([]byte, 64)
+	rand.Read(key)
+
 	claims := &jwt.StandardClaims{
 		Audience:  "tudou",
 		Issuer:    "tudou",
@@ -28,9 +32,20 @@ func PostLogin(c *gin.Context) {
 		Id:        email,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenS, err := token.SignedString([]byte("h908H*Hjhoiwh809h78gs6^$E^TRCVJM(82y,l;L?<O@E)Y0"))
+	tokenS, err := token.SignedString(key)
 	if err != nil {
 		c.Status(http.StatusForbidden)
+		return
+	}
+
+	if err := db.DB.Create(&models.TokenRecord{
+		Token:   tokenS,
+		Key:     key,
+		Revoked: false,
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
 		return
 	}
 
