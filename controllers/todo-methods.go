@@ -141,7 +141,7 @@ func PushTodo(c *gin.Context) {
 		return
 	}
 
-	err := db.DB.Debug().Transaction(func(tx *gorm.DB) error {
+	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		var err error
 		// 1. Postpone todo
 		todo.Status = vars.TodoStatusPostponed
@@ -270,7 +270,7 @@ func RemoveTodo(c *gin.Context) {
 	}
 	user := c.MustGet("user").(*models.User)
 
-	err := db.DB.Debug().Transaction(func(tx *gorm.DB) error {
+	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		var err error
 		// 1. Remove todos
 		err = tx.Where("event_id = ?", todo.EventID).Delete(&models.Todo{}).Error

@@ -22,7 +22,7 @@ func GetTodos(c *gin.Context) {
 		// "status":  vars.TodoStatusOpen,
 	}).Order("time_start, id").Find(&todayTodos)
 	tomorrawTodos := []models.Todo{}
-	db.DB.Debug().Preload("Event").Where(map[string]interface{}{
+	db.DB.Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
 		"date":    tomorraw,
 		// "status":  vars.TodoStatusOpen,

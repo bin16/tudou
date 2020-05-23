@@ -33,7 +33,7 @@ func ShouldAuthed(c *gin.Context) {
 	email := claims.Id
 
 	u0 := models.User{Email: email}
-	if db.DB.Debug().Preload("Setting").First(&u0).Error != nil {
+	if db.DB.Preload("Setting").First(&u0).Error != nil {
 		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}

@@ -62,7 +62,7 @@ func UpdateNote(c *gin.Context) {
 	user := c.MustGet("user").(*models.User)
 
 	note := models.Note{}
-	if err := db.DB.Debug().Where(map[string]interface{}{
+	if err := db.DB.Where(map[string]interface{}{
 		"id":      values.ID,
 		"user_id": user.ID,
 	}).First(&note).Error; err != nil {

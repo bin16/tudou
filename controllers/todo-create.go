@@ -27,7 +27,7 @@ func UpdateTodo(c *gin.Context) {
 	user := c.MustGet("user").(*models.User)
 
 	todo := models.Todo{}
-	if err := db.DB.Debug().Preload("Event").Where(map[string]interface{}{
+	if err := db.DB.Preload("Event").Where(map[string]interface{}{
 		"id":      values.ID,
 		"user_id": user.ID,
 	}).First(&todo).Error; err != nil {
@@ -38,7 +38,7 @@ func UpdateTodo(c *gin.Context) {
 		c.Status(http.StatusBadRequest)
 		return
 	}
-	err := db.DB.Debug().Transaction(func(tx *gorm.DB) error {
+	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		var err error
 		// 1. Update todo
 		todo.Event.Content = values.Content
@@ -170,7 +170,7 @@ func CreateTodo(c *gin.Context) {
 
 	user := c.MustGet("user").(*models.User)
 
-	err := db.DB.Debug().Transaction(func(tx *gorm.DB) error {
+	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		var err error
 		// 1. Create todo
 		todo := models.Todo{
@@ -231,7 +231,7 @@ func CloneTodo(c *gin.Context) {
 
 	user := c.MustGet("user").(*models.User)
 
-	err := db.DB.Debug().Transaction(func(tx *gorm.DB) error {
+	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		var err error
 		// 1. Create todo & event
 		todo := models.Todo{
