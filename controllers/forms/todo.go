@@ -6,6 +6,7 @@ type TodoForm struct {
 	// Title       string `json:"title"`
 	// Description string `json:"description"`
 	Content string `json:"content"`
+	Time    string `json:"time"`
 }
 
 // Valid method return if form is valid and error message
@@ -15,4 +16,12 @@ func (tf TodoForm) Valid() (bool, string) {
 	}
 
 	return true, ""
+}
+
+func (tf TodoForm) TimeStart() string {
+	if tf.Time == "" {
+		return "23:59"
+	}
+
+	return tf.Time
 }

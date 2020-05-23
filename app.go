@@ -21,8 +21,11 @@ func main() {
 	r.Use(static.Serve("/", static.LocalFile("static", false)))
 	r.GET("/", controllers.IndexPage)
 	r.GET("/note", controllers.NotePage)
+	r.GET("/login", controllers.LoginPage)
+	r.POST("/login", controllers.PostLogin)
 
-	api := r.Group("/api", controllers.ShouldAuthed)
+	api := r.Group("/api")
+	api.Use(controllers.ShouldAuthed)
 	{
 		api.GET("/my/profile", controllers.GetProfile)
 		api.GET("/my/todos", controllers.GetTodos)
@@ -31,6 +34,7 @@ func main() {
 	}
 
 	actions := api.Group("/a")
+	actions.Use(controllers.ShouldAuthed)
 	{
 		actions.POST("/user.create", controllers.CreateUser)
 		actions.POST("/todo.update", controllers.UpdateTodo)

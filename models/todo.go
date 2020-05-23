@@ -13,4 +13,5 @@ type Todo struct {
 	Date      string    `json:"date"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
+	TimeStart string    `json:"time"`
 }

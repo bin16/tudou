@@ -20,18 +20,18 @@ func GetTodos(c *gin.Context) {
 		"user_id": u.ID,
 		"date":    today,
 		// "status":  vars.TodoStatusOpen,
-	}).Find(&todayTodos)
+	}).Order("time_start, id").Find(&todayTodos)
 	tomorrawTodos := []models.Todo{}
 	db.DB.Debug().Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
 		"date":    tomorraw,
 		// "status":  vars.TodoStatusOpen,
-	}).Find(&tomorrawTodos)
+	}).Order("time_start, id").Find(&tomorrawTodos)
 	overdueTodos := []models.Todo{}
 	db.DB.Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
 		"status":  vars.TodoStatusOpen,
-	}).Not("date", []string{today, tomorraw}).Find(&overdueTodos)
+	}).Order("time_start, id").Not("date", []string{today, tomorraw}).Find(&overdueTodos)
 
 	c.JSON(http.StatusOK, gin.H{
 		"today":    today,

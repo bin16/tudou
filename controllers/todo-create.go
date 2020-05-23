@@ -42,6 +42,7 @@ func UpdateTodo(c *gin.Context) {
 		var err error
 		// 1. Update todo
 		todo.Event.Content = values.Content
+		todo.TimeStart = values.TimeStart()
 		// todo.Event.Title = values.Title
 		// todo.Event.Description = values.Description
 		err = db.DB.Save(&todo).Error
@@ -103,10 +104,11 @@ func RenewTodo(c *gin.Context) {
 		}
 		// 2. Copy todo
 		copiedTodo := models.Todo{
-			EventID: todo.EventID,
-			UserID:  user.ID,
-			Date:    getTomorraw(),
-			Status:  vars.TodoStatusOpen,
+			EventID:   todo.EventID,
+			UserID:    user.ID,
+			Date:      getTomorraw(),
+			Status:    vars.TodoStatusOpen,
+			TimeStart: todo.TimeStart,
 		}
 		err = tx.Create(&copiedTodo).Error
 		if err != nil {
@@ -179,10 +181,11 @@ func CreateTodo(c *gin.Context) {
 				Status:  vars.EventStatusOpen,
 				UserID:  user.ID,
 			},
-			User:   *user,
-			Status: vars.TodoStatusOpen,
-			UserID: user.ID,
-			Date:   getTomorraw(),
+			User:      *user,
+			Status:    vars.TodoStatusOpen,
+			UserID:    user.ID,
+			Date:      getTomorraw(),
+			TimeStart: values.TimeStart(),
 		}
 		if err := db.DB.Create(&todo).Related(&todo.Event).Error; err != nil {
 			return err
@@ -237,10 +240,11 @@ func CloneTodo(c *gin.Context) {
 				Status:  vars.EventStatusOpen,
 				UserID:  user.ID,
 			},
-			User:   *user,
-			Status: vars.TodoStatusOpen,
-			UserID: user.ID,
-			Date:   getTomorraw(),
+			User:      *user,
+			Status:    vars.TodoStatusOpen,
+			UserID:    user.ID,
+			Date:      getTomorraw(),
+			TimeStart: todo.TimeStart,
 		}
 		if err := db.DB.Create(&todo).Related(&todo.Event).Error; err != nil {
 			return err

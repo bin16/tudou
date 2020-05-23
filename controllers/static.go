@@ -13,3 +13,8 @@ func IndexPage(c *gin.Context) {
 func NotePage(c *gin.Context) {
 	c.File("static/note.html")
 }
+
+// LoginPage note.html
+func LoginPage(c *gin.Context) {
+	c.File("static/login.html")
+}

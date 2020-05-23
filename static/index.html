@@ -88,9 +88,12 @@
     }
     .todo-icon {
       width: 3rem;
-      padding: 1rem 0;
+      padding: 1em 0;
       text-align: center;
       user-select: none;
+    }
+    .todo-icon .bi {
+      transform: scale(1.5);
     }
     .todo-tag {
       width: 4px;
@@ -310,15 +313,18 @@
         <span v-if="todo.status == 'todo_open'"></span>
         <span v-else-if="todo.status == 'todo_finished'">
           <!-- <i class="icon icon--2x icon--finished"></i> -->
-          <i class="icon-checked"></i>
+          <!-- <i class="icon-checked"></i> -->
+          <icon-check></icon-check>
         </span>
         <span v-else-if="todo.status == 'todo_postponed'">
           <!-- <i class="icon icon--2x icon--postponed"></i> -->
-          <i class="icon-arrow-right"></i>
+          <!-- <i class="icon-arrow-right"></i> -->
+          <icon-right></icon-right>
         </span>
         <span v-else="todo.status == 'todo_canceled'">
           <!-- <i class="icon icon--2x icon--canceled"></i> -->
-          <i class="icon-cross"></i>
+          <!-- <i class="icon-cross"></i> -->
+          <icon-dash></icon-dash>
         </span>
       </div>
       <div class="todo-tag">
@@ -399,6 +405,7 @@
               <a @click="pullTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">今天</a>
               <a @click="editTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
               <a @click="cancelTodo(todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
+              <a @click="removeTodo(todo)" class="todo-action hover-color-danger" href="javascript:;">删除</a>
             </div>
           </template>
         </todo-item>
@@ -441,6 +448,7 @@
   <template id="profile-view-template">
     <div class="paper-container">
       <span class="font-mono">Profile</span>
+      <a href="javascript:;" @click="logout()">logout</a>
     </div>
   </template>
   <template id="tudou-view-template">
@@ -466,9 +474,35 @@
       </pre>
     </div>
   </template>
+  <template id="icon-bi-check">
+    <svg class="bi bi-check" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z" clip-rule="evenodd"/>
+    </svg>
+  </template>
+  <template id="icon-bi-right">
+    <svg class="bi bi-caret-right" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M6 12.796L11.481 8 6 3.204v9.592zm.659.753l5.48-4.796a1 1 0 000-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 001.659.753z" clip-rule="evenodd"/>
+    </svg>
+  </template>
+  <template id="icon-bi-left">
+    <svg class="bi bi-caret-left" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M10 12.796L4.519 8 10 3.204v9.592zm-.659.753l-5.48-4.796a1 1 0 010-1.506l5.48-4.796A1 1 0 0111 3.204v9.592a1 1 0 01-1.659.753z" clip-rule="evenodd"/>
+    </svg>
+  </template>
+  <template id="icon-bi-dash">
+    <svg class="bi bi-dash" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M3.5 8a.5.5 0 01.5-.5h8a.5.5 0 010 1H4a.5.5 0 01-.5-.5z" clip-rule="evenodd"/>
+    </svg>
+  </template>
   <script>
     (function () {
       window.addEventListener('DOMContentLoaded', function() {
+        const token = window.localStorage.getItem('token') ?? null;
+        if (!token) {
+          window.history.replaceState(null, 'login', '/login?next=/');
+          document.location.reload();
+          return;
+        } 
         const TudouView = 'tudou-view';
         const TodayView = 'today-view';
         const TomorrawView = 'tomorraw-view';
@@ -480,11 +514,31 @@
           methods: {
             reload: () => EventBus.$emit('changed'),
             navigate: viewName => EventBus.$emit('viewChange', viewName),
+            login() {
+              window.history.replaceState(null, 'login', '/login?next=/');
+              document.location.reload();
+            },
+            logout() {
+              localStorage.removeItem('token');
+              window.history.replaceState(null, 'login', '/login?next=/');
+              document.location.reload();
+            },
           },
         });
+        Vue.component('icon-check', {
+          template: '#icon-bi-check',
+        });
+        Vue.component('icon-right', {
+          template: '#icon-bi-right',
+        });
+        Vue.component('icon-left', {
+          template: '#icon-bi-left',
+        });
+        Vue.component('icon-dash', {
+          template: '#icon-bi-dash',
+        });        
         Vue.component('todo-list', {
           template: '#todo-list-template',
-          props: ['todos'],
         });
         Vue.component('todo-item', {
           template: '#todo-item-template',
@@ -548,6 +602,10 @@
             },
             async cancelTodo(todo) {
               await cancelTodo(todo.id);
+              await this.reload();
+            },
+            async removeTodo(todo) {
+              await removeTodo(todo.id);
               await this.reload();
             },
             async createTodo() {
@@ -652,7 +710,7 @@
         });
       });
       async function getTodos() {
-        const resp = await fetch('/api/my/todos');
+        const resp = await request('/api/my/todos');
         const data = await resp.json();
         const {
           today,
@@ -664,69 +722,87 @@
       
         return {
           today,
-          todayTodos,
+          todayTodos: todayTodos.map(todo => {
+            const time = todo.event?.content?.match(/@(\d+\:\d+)/)?.[1] ?? (99999999 + todo.id).toString();
+            return {
+              ...todo,
+              index: +time.replace(':', ''),
+            };
+          }).sort((a, b) => a.index - b.index),
           tomorraw,
-          tomorrawTodos,
+          tomorrawTodos: tomorrawTodos.filter(todo => todo.status === 'todo_open'),
           overdueTodos,
         };
       }
       async function getProfile() {
-        const resp = await fetch('/api/my/profile');
+        const resp = await request('/api/my/profile');
         const data = await resp.json();
         const { user } = data;
         return user;
       }
       async function createTodo(content) {
-        const resp = await fetch('/api/a/todo.create', {
+        const time = (content?.match(/@(\d+:\d+)\s/)?.[1] ?? '23:59').padStart(5, '0');
+        const resp = await request('/api/a/todo.create', {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ content, }),
+          body: JSON.stringify({ content, time, }),
           method: 'POST',
         });
       }
       async function updateTodo(id, content) {
-        const resp = await fetch('/api/a/todo.update', {
+        const time = (content?.match(/@(\d+:\d+)\s/)?.[1] ?? '23:59').padStart(5, '0');
+        const resp = await request('/api/a/todo.update', {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ id, content, }),
+          body: JSON.stringify({ id, content, time, }),
           method: 'POST',
         });
       }
       async function pullTodo(id) {
-        const resp = await fetch(`/api/a/todo.pull?id=${id}`, {
+        const resp = await request(`/api/a/todo.pull?id=${id}`, {
           method: 'POST',
         });
       }
       async function pushTodo(id) {
-        const resp = await fetch(`/api/a/todo.push?id=${id}`, {
+        const resp = await request(`/api/a/todo.push?id=${id}`, {
           method: 'POST',
         });
       }
       async function cancelTodo(id) {
-        const resp = await fetch(`/api/a/todo.cancel?id=${id}`, {
+        const resp = await request(`/api/a/todo.cancel?id=${id}`, {
           method: 'POST',
         });
       }
       async function finishTodo(id) {
-        const resp = await fetch(`/api/a/todo.finish?id=${id}`, {
+        const resp = await request(`/api/a/todo.finish?id=${id}`, {
           method: 'POST',
         });
       }
       async function removeTodo(id) {
-        const resp = await fetch(`/api/a/todo.remove?id=${id}`, {
+        const resp = await request(`/api/a/todo.remove?id=${id}`, {
           method: 'POST',
         });
       }
       async function renewTodo(id) {
-        const resp = await fetch(`/api/a/todo.renew?id=${id}`, {
+        const resp = await request(`/api/a/todo.renew?id=${id}`, {
           method: 'POST',
         });
       }
       async function cloneTodo(id) {
-        const resp = await fetch(`/api/a/todo.clone?id=${id}`, {
+        const resp = await request(`/api/a/todo.clone?id=${id}`, {
           method: 'POST',
+        });
+      }
+
+      function request(url, data) {
+        return fetch(url, {
+          ...data,
+          headers: {
+            ...data?.headers ?? null,
+            Authorization: `Bearer ${ localStorage.getItem('token') ?? '' }`,
+          },
         });
       }
     })();
