@@ -2,13 +2,14 @@ package models
 
 import "time"
 
-// Todo item, one todo for one day
+// Setting ...
 type Setting struct {
-	ID        int       `json:"id"`
-	UserID    int       `json:"-"`
-	Timezone  string    `json:"tz"`
-	Language  string    `json:"lang"`
-	GameMode  bool      `json:"gameMode"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	ID         int       `json:"id"`
+	UserID     int       `json:"-"`
+	Timezone   string    `json:"tz"`
+	Language   string    `json:"lang"`
+	GameMode   bool      `json:"gameMode"`
+	ThemeColor string    `json:"themeColor"`
+	CreatedAt  time.Time `json:"-"`
+	UpdatedAt  time.Time `json:"-"`
 }

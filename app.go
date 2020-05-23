@@ -31,6 +31,7 @@ func main() {
 		api.GET("/my/todos", controllers.GetTodos)
 		api.GET("/my/logs", controllers.GetLogs)
 		api.GET("/my/notes", controllers.GetNotes)
+		api.GET("/my/settings", controllers.GetSettings)
 	}
 
 	actions := api.Group("/a")
