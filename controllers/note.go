@@ -34,11 +34,12 @@ func CreateNote(c *gin.Context) {
 	user := c.MustGet("user").(*models.User)
 
 	note := models.Note{
-		Content:  values.Content,
-		Title:    values.Title,
-		UserID:   user.ID,
-		User:     *user,
-		Archived: false,
+		Content:     values.Content,
+		Title:       values.Title,
+		UserID:      user.ID,
+		User:        *user,
+		Archived:    false,
+		Attachments: values.Attachments,
 	}
 	if err := db.DB.Create(&note).Error; err != nil {
 		c.JSON(errorJSON(err))
@@ -70,6 +71,7 @@ func UpdateNote(c *gin.Context) {
 	}
 	note.Content = values.Content
 	note.Title = values.Title
+	note.Attachments = values.Attachments
 	if err := db.DB.Save(&note).Error; err != nil {
 		c.JSON(errorJSON(err))
 		return

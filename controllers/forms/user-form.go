@@ -10,7 +10,7 @@ type SignupForm struct {
 
 // Valid method return if form is valid and error message
 func (sf SignupForm) Valid() (bool, string) {
-	// TODO: Email check
+	// TODO: Email check`
 	if sf.Email == "" {
 		return false, "Email is required"
 	}
@@ -23,6 +23,7 @@ func (sf SignupForm) Valid() (bool, string) {
 	return true, ""
 }
 
+// ToUser get user struct
 func (sf SignupForm) ToUser() models.User {
 	return models.User{
 		Name:  sf.Name,

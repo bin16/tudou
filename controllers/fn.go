@@ -30,6 +30,8 @@ func calcCoins(action string) int64 {
 		return -10 * coin
 	case vars.ActionCreateTodo:
 		return 1 * coin
+	case vars.ActionCloneTodo:
+		return 1 * coin
 	case vars.ActionRenewTodo:
 		return -20 * coin
 	}

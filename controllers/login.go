@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// PostLogin handle login form
 func PostLogin(c *gin.Context) {
 	email := c.PostForm("email")
 	user := models.User{Email: email}

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Tudou Note 🥔📝</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -19,32 +19,58 @@
   </style>
 </head>
 
-<body>
-  <div class="container py-3" id="note-app">
+<body class="bg-light">
+  <div class="container" id="note-app">
     <div class="row">
-      <div class="col-md-6">
-        <article v-for="note in notes">
+      <div class="col-md-6 py-3">
+        <article v-for="note in noteline" class="py-2 border-top">
           <small class="text-black-50 hover-show">
             <span>#{{note.id}}</span>
             <!-- <span class="mr-1">@{{note.user.name}}</span> -->
             <time class="mr-1">{{datetime(note.createdAt)}}</time>
-            <a href="#" @click="editNote(note)" class="text-black-50 mr-1">编辑</a>
-            <a href="#" @click="removeNote(note)" class="text-black-50 mr-1">删除</a>
+            <a href="javascript:;" @click="editNote(note)" class="text-black-50 mr-1">编辑</a>
+            <a href="javascript:;" @click="removeNote(note)" class="text-black-50 mr-1">删除</a>
           </small>
           <pre style="white-space: pre-line;" v-html="parse(note.content)"></pre>
         </article>
       </div>
       <div class="col-md-6">
-        <div class="card">
+        <div class="card mt-3 shadow">
           <div class="card-body">
-            <form @submit.prevent="saveNote">
-              <div class="form-group">
-                <textarea v-model="form.content" name="content" class="form-control"></textarea>
-              </div>
-              <div class="form-group">
-                <button class="btn btn-primary" type="submit">Save</button>
-              </div>
-            </form>
+            <h2>Tudou Note</h2>
+          </div>
+        </div>
+        <div class="card-container mt-0 pt-3 sticky-top">
+          <div class="card sticky-top shadow">
+            <div class="card-body">
+              <form @submit.prevent="saveNote">
+                <div class="form-group">
+                  <textarea placeholder="Say something..." rows="8" id="formContent" v-model="form.content" name="content" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                  <ul class="list-group">
+                    <li class="list-group-item" v-for="item in form.files">
+                      <a :href="item.url" target="_blank">
+                        <span class="badge badge-info">{{ item.type }}</span>
+                        {{ item.name || item.url }}
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="form-group">
+                  <div class="alert" :class="dropArea.class" 
+                    @dragover.prevent
+                    @dragenter="handleDragIn"
+                    @dragleave="handleDragOut"
+                    @drop.prevent="handleFileDrop">
+                    Drop files here
+                  </div>
+                </div>
+                <div class="form-group">
+                  <button class="btn btn-block btn-outline-secondary" type="submit">Save</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -272,7 +298,6 @@
       }
     })();
     (function() {
-      const worker = new Worker('/worker.js');
       const vue = new Vue({
         el: '#note-app',
         data: {
@@ -281,12 +306,63 @@
             content: '',
             title: '',
             id: 0,
-          }
+            files: [],
+          },
+          dropArea: {
+            class: 'alert-secondary'
+          },
         },
         created() {
           this.reload(); 
         },
+        computed: {
+          formBody() {
+            return {
+              ...this.form,
+              attachments: this.form?.files.map(item => item.url).join('\n'),
+            };
+          },
+          noteline() {
+            return this.notes.map(note => {
+              return {
+                ...note,
+                files: note.attachments.split('\n').filter(url => !!url).map((url, index) => {
+                  return {
+                    url, index, type: 'none',
+                  };
+                }),
+              };
+            });
+          },
+        },
         methods: {
+          handleDragIn(e) {
+            const file = e.dataTransfer?.files?.[0];
+            if (file) {
+              e.preventDefault();
+            }
+            this.dropArea.class = 'alert-warning';
+          },
+          handleDragOut(e) {
+            const file = e.dataTransfer?.files?.[0];
+            if (file) {
+              e.preventDefault();
+            }
+            this.dropArea.class = 'alert-secondary';
+          },
+          handleFileDrop(e) {
+            const file = e.dataTransfer?.files?.[0];
+            if (file) {
+              e.preventDefault();
+            }
+            this.dropArea.class = 'alert-secondary';
+            const files = e.dataTransfer?.files;
+            for (let i = 0; i < files.length; i++) {
+              if (files[i]?.type) {
+                this.uploadFile(files[i], i);
+              }
+            }
+          },
           parse(str) {
             return MarkUpRender(str);
           },
@@ -302,12 +378,31 @@
               content: '',
               title: '',
               id: 0,
+              files: [],
             };
           },
           editNote(note) {
             this.form.content = note.content;
             this.form.title = note.title;
             this.form.id = note.id;
+            this.form.files = note.attachments.split('\n').map((url, index) => {
+              return {
+                url,
+                index,
+                type: 'none',
+              };
+            });
+          },
+          async uploadFile(fileObj, index = 0) {
+            const url = await uploadFile(fileObj);
+            if (url) {
+              this.form.files.push({
+                index,
+                url,
+                type: fileObj.type,
+                name: fileObj.name,
+              });
+            }
           },
           async removeNote(note) {
             const title = `Delete note${note.title ? ' ' + note.title : ''}?`;
@@ -323,9 +418,9 @@
           },
           async saveNote() {
             if (!this.form.id) {
-              await createNote(this.form);
+              await createNote(this.formBody);
             } else {
-              await updateNote(this.form);
+              await updateNote(this.formBody);
             }
             await this.reload();
             await this.resetForm();
@@ -333,33 +428,51 @@
         }
       })
       async function getNotes() {
-        const resp = await fetch('/api/my/notes');
+        const resp = await request('/api/my/notes');
         const data = resp.json();
         return data; // data { notes }
       } 
       async function createNote(values) { // values{ content, title }
-        const resp = await fetch('/api/a/note.create', {
+        const resp = await request('/api/a/note.create', {
           method: 'POST',
           body: JSON.stringify(values),
         });
       }
       async function updateNote(values) { // values{ content, title, }
-        const resp = await fetch('/api/a/note.update', {
+        const resp = await request('/api/a/note.update', {
           method: 'POST',
           body: JSON.stringify(values),
         });
       }
       async function removeNote(noteId) { // values{ content, title, }
-        const resp = await fetch(`/api/a/note.remove?id=${ noteId }`, {
+        const resp = await request(`/api/a/note.remove?id=${ noteId }`, {
           method: 'POST',
         });
       }
-      worker.onmessage = (e) => {
-        console.log('biu1', e);
+      async function uploadFile(fileObj) {
+        const formData = new FormData();
+        const fileBuf = await fileObj.arrayBuffer();
+        const fileBlob = new Blob([fileBuf], {
+          type: fileObj.type,
+        });
+        formData.append('file', fileBlob, fileObj.name);
+        const resp = await request('/api/a/file.upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await resp.json();
+        return data?.url ?? '';
       }
-      worker.postMessage([11, 22], {
-        what: '222',
-      });
+
+      function request(url, data) {
+        return fetch(url, {
+          ...data,
+          headers: {
+            ...data?.headers ?? null,
+            Authorization: `Bearer ${ localStorage.getItem('token') ?? '' }`,
+          },
+        });
+      }
     })();
   </script>
 </body>

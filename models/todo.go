@@ -14,4 +14,5 @@ type Todo struct {
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 	TimeStart string    `json:"time"`
+	Duration  int       `json:"duration"` // is minutes
 }
