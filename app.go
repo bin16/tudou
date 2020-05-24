@@ -1,28 +1,37 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
+	"github.com/bin16/tudou/conf"
 	"github.com/bin16/tudou/controllers"
 	"github.com/bin16/tudou/db"
-	"github.com/bin16/tudou/models"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	_ "github.com/mattn/go-sqlite3"
 )
 
+// tudou config.toml
 func main() {
-	if dbERR := db.Open(); dbERR != nil {
+	conf.Load()
+
+	database, dbERR := gorm.Open(conf.Database.Dialect, conf.Database.DB)
+	if dbERR != nil {
 		log.Fatal(dbERR)
 	}
-	defer db.DB.Close()
-	models.AutoMigrate(db.DB)
+	db.Use(database)
 
 	r := gin.Default()
 	r.Use(static.Serve("/", static.LocalFile("static", false)))
 	r.GET("/", controllers.IndexPage)
 	r.GET("/note", controllers.NotePage)
 	r.GET("/login", controllers.LoginPage)
-	r.POST("/login", controllers.PostLogin)
+	if conf.Github.Enabled {
+		r.GET("/auth/github", controllers.OAuth2Github)
+		r.GET("/auth/github/callback", controllers.OAuth2GithubCallback)
+	}
 
 	api := r.Group("/api")
 	api.Use(controllers.ShouldAuthed)
@@ -37,7 +46,6 @@ func main() {
 	actions := api.Group("/a")
 	actions.Use(controllers.ShouldAuthed)
 	{
-		actions.POST("/user.create", controllers.CreateUser)
 		actions.POST("/todo.update", controllers.UpdateTodo)
 		// Tomorraw
 		actions.POST("/todo.create", controllers.CreateTodo)
@@ -61,5 +69,5 @@ func main() {
 		actions.POST("/file.upload", controllers.UploadFile)
 	}
 
-	r.Run(":2358")
+	r.Run(fmt.Sprintf(":%d", conf.Server.Port))
 }

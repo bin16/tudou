@@ -71,7 +71,7 @@ func UpdateTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -83,7 +83,7 @@ func RenewTodo(c *gin.Context) {
 	todoID := getTodoID(c)
 	todo := models.Todo{ID: todoID}
 	if err := db.DB.Preload("Event").Where("id = ?", todoID).First(&todo).Error; err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	user := c.MustGet("user").(*models.User)
@@ -146,7 +146,7 @@ func RenewTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -211,7 +211,7 @@ func CreateTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -271,7 +271,7 @@ func CloneTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 

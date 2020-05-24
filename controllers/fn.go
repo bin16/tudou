@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"net/http"
 	"strconv"
 	"time"
 
@@ -39,17 +38,8 @@ func calcCoins(action string) int64 {
 	return 0
 }
 
-func errorJSON(err error) (int, gin.H) {
-	if err == nil {
-		return http.StatusOK, gin.H{
-			"ok": 1,
-		}
-	}
-
-	return http.StatusInternalServerError, gin.H{
-		"ok":      0,
-		"message": err.Error(),
-	}
+func msgJSON(status int, message string) (int, gin.H) {
+	return status, gin.H{"message": message}
 }
 
 func getTodoID(c *gin.Context) int {

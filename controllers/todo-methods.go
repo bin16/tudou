@@ -15,7 +15,7 @@ func FinishTodo(c *gin.Context) {
 	todoID := getTodoID(c)
 	todo := models.Todo{ID: todoID}
 	if err := db.DB.Preload("Event").Where("id = ?", todoID).First(&todo).Error; err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	user := c.MustGet("user").(*models.User)
@@ -58,7 +58,7 @@ func FinishTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -72,7 +72,7 @@ func CancelTodo(c *gin.Context) {
 	todoID := getTodoID(c)
 	todo := models.Todo{ID: todoID}
 	if err := db.DB.Preload("Event").Where("id = ?", todoID).First(&todo).Error; err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	user := c.MustGet("user").(*models.User)
@@ -114,7 +114,7 @@ func CancelTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -130,7 +130,7 @@ func PushTodo(c *gin.Context) {
 	todoID := getTodoID(c)
 	todo := models.Todo{ID: todoID}
 	if err := db.DB.Preload("Event").Where("id = ?", todoID).First(&todo).Error; err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	user := c.MustGet("user").(*models.User)
@@ -192,7 +192,7 @@ func PushTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -207,7 +207,7 @@ func PullTodo(c *gin.Context) {
 	todoID := getTodoID(c)
 	todo := models.Todo{ID: todoID}
 	if err := db.DB.Preload("Event").First(&todo).Error; err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	user := c.MustGet("user").(*models.User)
@@ -250,7 +250,7 @@ func PullTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -265,7 +265,7 @@ func RemoveTodo(c *gin.Context) {
 	todoID := getTodoID(c)
 	todo := models.Todo{ID: todoID}
 	if err := db.DB.Preload("Event").First(&todo).Error; err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 	user := c.MustGet("user").(*models.User)
@@ -304,7 +304,7 @@ func RemoveTodo(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 

@@ -13,7 +13,8 @@ import (
 func ShouldAuthed(c *gin.Context) {
 	header := c.GetHeader("Authorization")
 	if header == "" {
-		c.AbortWithStatus(http.StatusForbidden)
+		c.JSON(msgJSON(http.StatusForbidden, "token_not_found"))
+		c.Abort()
 		return
 	}
 
@@ -21,20 +22,21 @@ func ShouldAuthed(c *gin.Context) {
 	claims := jwt.StandardClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, &claims, keyFunc)
 	if err != nil {
-		c.AbortWithStatus(http.StatusForbidden)
+		c.JSON(msgJSON(http.StatusBadRequest, "bad_token"))
+		c.Abort()
 		return
 	}
 
 	if !token.Valid {
-		c.AbortWithStatus(http.StatusForbidden)
+		c.JSON(msgJSON(http.StatusForbidden, "invalid_token"))
+		c.Abort()
 		return
 	}
 
-	email := claims.Id
-
-	u0 := models.User{Email: email}
-	if db.DB.Preload("Setting").First(&u0).Error != nil {
-		c.AbortWithStatus(http.StatusForbidden)
+	u0 := models.User{}
+	if db.DB.Preload("Setting").Where("uuid = ?", claims.Id).First(&u0).Error != nil {
+		c.JSON(msgJSON(http.StatusForbidden, "user_not_found"))
+		c.Abort()
 		return
 	}
 

@@ -1,0 +1,9 @@
+[server]
+    port = 2358
+[database]
+    dialect = "sqlite3"
+    db = "data/db.sqlite3"
+[github]
+    enabled = false
+    clientId = "..."
+    clientSecret = "..."

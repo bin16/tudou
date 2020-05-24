@@ -1,17 +1,27 @@
 package db
 
 import (
+	"github.com/bin16/tudou/models"
 	"github.com/jinzhu/gorm"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
 	DB *gorm.DB
 )
 
-func Open() error {
-	var err error
-	DB, err = gorm.Open("sqlite3", "data/db.sqlite3")
+// Use one connected *gorm.DB
+func Use(db *gorm.DB) {
+	migrate(db)
+	DB = db
+}
 
-	return err
+// AutoMigrate all tables
+func migrate(db *gorm.DB) {
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Event{})
+	db.AutoMigrate(&models.Todo{})
+	db.AutoMigrate(&models.Log{})
+	db.AutoMigrate(&models.Setting{})
+	db.AutoMigrate(&models.Note{})
+	db.AutoMigrate(&models.TokenRecord{})
 }

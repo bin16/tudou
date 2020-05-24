@@ -42,7 +42,7 @@ func CreateNote(c *gin.Context) {
 		Attachments: values.Attachments,
 	}
 	if err := db.DB.Create(&note).Error; err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -73,7 +73,7 @@ func UpdateNote(c *gin.Context) {
 	note.Title = values.Title
 	note.Attachments = values.Attachments
 	if err := db.DB.Save(&note).Error; err != nil {
-		c.JSON(errorJSON(err))
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
