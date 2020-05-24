@@ -806,13 +806,7 @@
       
         return {
           today,
-          todayTodos: todayTodos.map(todo => {
-            const time = todo.event?.content?.match(/@(\d+\:\d+)/)?.[1] ?? (99999999 + todo.id).toString();
-            return {
-              ...todo,
-              index: +time.replace(':', ''),
-            };
-          }).sort((a, b) => a.index - b.index),
+          todayTodos,
           tomorraw,
           tomorrawTodos: tomorrawTodos.filter(todo => todo.status === 'todo_open'),
           overdueTodos,
@@ -831,22 +825,26 @@
         return user;
       }
       async function createTodo(content) {
-        const time = (content?.match(/@(\d+:\d+)\s/)?.[1] ?? '23:59').padStart(5, '0');
+        const results = (content?.match(/@(\d+:\d+)\+?(\d+)?\s?/));
+        const time = (results?.[1] ?? '23:59').padStart(5, '0');
+        const duration = +(results?.[2] ?? 0); 
         const resp = await request('/api/a/todo.create', {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ content, time, }),
+          body: JSON.stringify({ content, time, duration, }),
           method: 'POST',
         });
       }
       async function updateTodo(id, content) {
-        const time = (content?.match(/@(\d+:\d+)\s/)?.[1] ?? '23:59').padStart(5, '0');
+        const results = (content?.match(/@(\d+:\d+)\+?(\d+)?\s?/));
+        const time = (results?.[1] ?? '23:59').padStart(5, '0');
+        const duration = +(results?.[2] ?? 0); 
         const resp = await request('/api/a/todo.update', {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ id, content, time, }),
+          body: JSON.stringify({ id, content, time, duration, }),
           method: 'POST',
         });
       }

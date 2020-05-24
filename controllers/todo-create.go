@@ -43,8 +43,7 @@ func UpdateTodo(c *gin.Context) {
 		// 1. Update todo
 		todo.Event.Content = values.Content
 		todo.TimeStart = values.TimeStart()
-		// todo.Event.Title = values.Title
-		// todo.Event.Description = values.Description
+		todo.Duration = values.Duration
 		err = db.DB.Save(&todo).Error
 		if err != nil {
 			return err
@@ -109,6 +108,7 @@ func RenewTodo(c *gin.Context) {
 			Date:      getTomorraw(),
 			Status:    vars.TodoStatusOpen,
 			TimeStart: todo.TimeStart,
+			Duration:  todo.Duration,
 		}
 		err = tx.Create(&copiedTodo).Error
 		if err != nil {
@@ -175,8 +175,6 @@ func CreateTodo(c *gin.Context) {
 		// 1. Create todo
 		todo := models.Todo{
 			Event: models.Event{
-				// Title:       values.Title,
-				// Description: values.Description,
 				Content: values.Content,
 				Status:  vars.EventStatusOpen,
 				UserID:  user.ID,
@@ -186,6 +184,7 @@ func CreateTodo(c *gin.Context) {
 			UserID:    user.ID,
 			Date:      getTomorraw(),
 			TimeStart: values.TimeStart(),
+			Duration:  values.Duration,
 		}
 		if err := db.DB.Create(&todo).Related(&todo.Event).Error; err != nil {
 			return err
@@ -245,6 +244,7 @@ func CloneTodo(c *gin.Context) {
 			UserID:    user.ID,
 			Date:      getTomorraw(),
 			TimeStart: todo.TimeStart,
+			Duration:  todo.Duration,
 		}
 		if err := db.DB.Create(&todo).Related(&todo.Event).Error; err != nil {
 			return err
