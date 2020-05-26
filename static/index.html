@@ -181,95 +181,9 @@
     .font-serif {
       font-family: var(--font-serif);
     }
-    .icon {
-      display: block;
-      margin: auto;
-      width: 1rem;
-      height: 1rem;
-      background-repeat: no-repeat;
-      background-position: center;
-      opacity: .5;
-    }
-    .icon--2x {
-      transform: scale(2);
-    }
-    .icon--3x {
-      transform: scale(3);
-    }
-    .icon--finished {
-      background-image: url(/icon-finished.svg);
-    }
-    .icon--canceled {
-      background-image: url(/icon-canceled.svg);
-    }
-    .icon--postponed {
-      background-image: url(/icon-postponed.svg);
-    }
-
+   
     .paper-container {
       padding: 1rem;
-    }
-
-    .icon-checked,
-    .icon-arrow-right,
-    .icon-cross {
-      position: relative;
-      display: inline-block;
-      width: 1em;
-      height: 1em;
-      font-size: 1rem;
-    }
-    .icon-checked::before {
-      content: '';
-      box-sizing: border-box;
-      display: block;
-      width: 1.2em;
-      height: .7em;
-      border-left: .25em solid #000;
-      border-bottom: .25em solid #000;
-      transform-origin: center;
-      transform: rotate(-45deg);
-    }
-    .icon-arrow-right::before {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 0;
-      box-sizing: border-box;
-      display: block;
-      width: 100%;
-      height: 100%;
-      border-top: .25em solid #000;
-      border-right: .25em solid #000;
-      transform-origin: center;
-      transform: rotate(45deg);
-    }
-    .icon-arrow-right::after {
-      content: '';
-      position: absolute;
-      top: .375em;
-      right: .15rem;
-      box-sizing: border-box;
-      width: 1em;
-      height: .25em;
-      background-color: black;
-    }
-    .icon-cross::before,
-    .icon-cross::after {
-      content: '';
-      position: absolute;
-      left: .25em;
-      top: -.1em;
-      display: block;
-      width: .25em;
-      height: 1.2em;
-      background-color: black;
-    }
-    .icon-cross::before {
-      transform: rotate(45deg);
-    }
-    .icon-cross::after {
-      transform: rotate(-45deg);
     }
 
     .td-form,
@@ -353,19 +267,16 @@
       <div class="todo-icon">
         <span v-if="todo.status == 'todo_open'"></span>
         <span v-else-if="todo.status == 'todo_finished'">
-          <!-- <i class="icon icon--2x icon--finished"></i> -->
-          <!-- <i class="icon-checked"></i> -->
           <icon-check></icon-check>
         </span>
         <span v-else-if="todo.status == 'todo_postponed'">
-          <!-- <i class="icon icon--2x icon--postponed"></i> -->
-          <!-- <i class="icon-arrow-right"></i> -->
           <icon-right></icon-right>
         </span>
-        <span v-else="todo.status == 'todo_canceled'">
-          <!-- <i class="icon icon--2x icon--canceled"></i> -->
-          <!-- <i class="icon-cross"></i> -->
+        <span v-else-if="todo.status == 'todo_canceled'">
           <icon-dash></icon-dash>
+        </span>
+        <span v-else="todo.status == 'todo_removed'">
+          <icon-x></icon-x>
         </span>
       </div>
       <div class="todo-tag">
@@ -405,7 +316,7 @@
         <todo-item
           :index="$index + 1"
           :todo="todo" 
-          :key="todo.id" v-else>
+          :key="todo.id + ':today'" v-else>
           <template v-slot:action-group="slotProps" >
             <div :key="slotProps.todo.id" class="todo-action-group" v-if="slotProps.todo.status == 'todo_open'">
               <a @click="finishTodo(slotProps.todo)" class="todo-action hover-color-primary" href="javascript:;">完成</a>
@@ -414,6 +325,7 @@
               <a @click="cancelTodo(slotProps.todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
             </div>
             <div :key="slotProps.todo.id" class="todo-action-group" v-else>
+              <a @click="resetTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">恢复</a>
               <a @click="cloneTodo(slotProps.todo)" class="todo-action hover-color-secondary" href="javascript:;">复制</a>
             </div>
           </template>
@@ -442,13 +354,19 @@
         <todo-item
           :index="$index + 1"
           :todo="todo" 
-          :key="todo.id" v-else>
+          :key="todo.id + ':tomorrow'" v-else>
           <template v-slot:action-group="slotProps" >
-            <div :key="slotProps.todo.id" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
+            <div :key="slotProps.todo.id + ':todo_open:today'" class="todo-action-group" v-show="slotProps.todo.status == 'todo_open'">
               <a @click="pullTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">今天</a>
               <a @click="editTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">编辑</a>
               <a @click="cancelTodo(todo)" class="todo-action hover-color-danger" href="javascript:;">取消</a>
               <a @click="removeTodo(todo)" class="todo-action hover-color-danger" href="javascript:;">删除</a>
+            </div>
+            <div :key="slotProps.todo.id + ':todo_removed:today'" class="todo-action-group" v-show="slotProps.todo.status == 'todo_removed'">
+              <a @click="resetTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">恢复</a>
+            </div>
+            <div :key="slotProps.todo.id + ':todo_canceled:today'" class="todo-action-group" v-show="slotProps.todo.status == 'todo_canceled'">
+              <a @click="resetTodo(todo)" class="todo-action hover-color-secondary" href="javascript:;">恢复</a>
             </div>
           </template>
         </todo-item>
@@ -519,22 +437,24 @@
     <div class="paper-container">
       <pre>
 
-        Tudou Paper v0.1
-        ================================================
+      Tudou Paper v0.1
+      ==================================================
 
-        Thanks
+      Thanks
 
-        * Gin         https://gin-gonic.com/
-                      https://github.com/gin-gonic/gin
+      * Gin             <a target="_blank" href="https://gin-gonic.com/">https://gin-gonic.com/</a>
+                        <a target="_blank" href="https://github.com/gin-gonic/gin">https://github.com/gin-gonic/gin</a>
 
-        * Gorm        https://gorm.io/
-                      https://github.com/jinzhu/gorm
+      * Gorm            <a target="_blank" href="https://gorm.io/">https://gorm.io/</a> 
+                        <a target="_blank" href="https://github.com/jinzhu/gorm">https://github.com/jinzhu/gorm</a> 
 
-        * Vue.js      https://vuejs.org
-                      https://github.com/vuejs/vue
+      * Vue.js          <a target="_blank" href="https://vuejs.org">https://vuejs.org</a>
+                        <a target="_blank" href="https://github.com/vuejs/vue">https://github.com/vuejs/vue</a> 
 
-        * Cloudflare  https://cloudflare.com
-        ================================================
+      * Bootstrap Icons <a target="_blank" href="https://icons.getbootstrap.com/">https://icons.getbootstrap.com/</a>
+
+      * Cloudflare      <a target="_blank" href="https://cloudflare.com">https://cloudflare.com</a> 
+      ==================================================
       </pre>
     </div>
   </template>
@@ -556,6 +476,12 @@
   <template id="icon-bi-dash">
     <svg class="bi bi-dash" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
       <path fill-rule="evenodd" d="M3.5 8a.5.5 0 01.5-.5h8a.5.5 0 010 1H4a.5.5 0 01-.5-.5z" clip-rule="evenodd"/>
+    </svg>
+  </template>
+  <template id="icon-bi-x">
+    <svg class="bi bi-x" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z"/>
+      <path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z"/>
     </svg>
   </template>
   <script>
@@ -600,6 +526,9 @@
         });
         Vue.component('icon-dash', {
           template: '#icon-bi-dash',
+        });       
+        Vue.component('icon-x', {
+          template: '#icon-bi-x',
         });        
         Vue.component('todo-list', {
           template: '#todo-list-template',
@@ -637,6 +566,10 @@
               await cancelTodo(todo.id);
               await this.reload();
             },
+            async resetTodo(todo) {
+              await resetTodo(todo.id);
+              await this.reload();
+            },
             async updateTodo() {
               await updateTodo(this.form.id, this.form.content);
               await this.reload();
@@ -671,6 +604,10 @@
             },
             async removeTodo(todo) {
               await removeTodo(todo.id);
+              await this.reload();
+            },
+            async resetTodo(todo) {
+              await resetTodo(todo.id);
               await this.reload();
             },
             async createTodo() {
@@ -884,6 +821,11 @@
       }
       async function cloneTodo(id) {
         const resp = await request(`/api/a/todo.clone?id=${id}`, {
+          method: 'POST',
+        });
+      }
+      async function resetTodo(id) {
+        const resp = await request(`/api/a/todo.reset?id=${id}`, {
           method: 'POST',
         });
       }

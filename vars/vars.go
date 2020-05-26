@@ -9,6 +9,7 @@ const (
 	TodoStatusCanceled  = "todo_canceled"
 	TodoStatusFinished  = "todo_finished"
 	TodoStatusOverdue   = "todo_overdue"
+	TodoStatusRemoved   = "todo_removed"
 
 	ActionCreateTodo = "create_todo" // +1
 	ActionCloneTodo  = "clone_todo"  // +1

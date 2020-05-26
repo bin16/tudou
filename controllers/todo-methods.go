@@ -10,6 +10,28 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// ResetTodo POST /api/a/todo.reset?id=X reopen a todo and its event
+func ResetTodo(c *gin.Context) {
+	todoID := getTodoID(c)
+	todo := models.Todo{ID: todoID}
+	if err := db.DB.Preload("Event").First(&todo).Error; err != nil {
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
+		return
+	}
+
+	todo.Status = vars.TodoStatusOpen
+	todo.Event.Status = vars.EventStatusOpen
+	err := db.DB.Save(&todo).Error
+	if err != nil {
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
+		return
+	}
+
+	http2Push(c, "/api/my/todos")
+
+	c.Status(http.StatusOK)
+}
+
 // FinishTodo POST /a/todo.finish?id=X
 func FinishTodo(c *gin.Context) {
 	todoID := getTodoID(c)
@@ -260,8 +282,32 @@ func PullTodo(c *gin.Context) {
 }
 
 // RemoveTodo POST /a/todo.remove?id=X
-// remove event and all related todos
+// set todo and event's status to removed
 func RemoveTodo(c *gin.Context) {
+	todoID := getTodoID(c)
+	todo := models.Todo{ID: todoID}
+	if err := db.DB.Preload("Event").First(&todo).Error; err != nil {
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
+		return
+	}
+
+	todo.Status = vars.TodoStatusRemoved
+	todo.Event.Status = vars.EventStatusClosed // closed, yes
+	err := db.DB.Save(&todo).Error
+	if err != nil {
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
+		return
+	}
+
+	http2Push(c, "/api/my/todos")
+
+	c.Status(http.StatusOK)
+}
+
+// DeleteTodo POST /a/todo.remove?id=X
+// remove event and all related todos
+// TODO: remove this method
+func DeleteTodo(c *gin.Context) {
 	todoID := getTodoID(c)
 	todo := models.Todo{ID: todoID}
 	if err := db.DB.Preload("Event").First(&todo).Error; err != nil {

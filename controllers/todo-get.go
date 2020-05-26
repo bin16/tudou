@@ -3,11 +3,11 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/bin16/tudou/vars"
+	"github.com/gin-gonic/gin"
 
 	"github.com/bin16/tudou/db"
 	"github.com/bin16/tudou/models"
-	"github.com/gin-gonic/gin"
+	"github.com/bin16/tudou/vars"
 )
 
 // GetTodos GET /api/my/todos
@@ -19,13 +19,11 @@ func GetTodos(c *gin.Context) {
 	db.DB.Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
 		"date":    today,
-		// "status":  vars.TodoStatusOpen,
-	}).Order("time_start, duration, id").Find(&todayTodos)
+	}).Order("time_start, duration, id").Not("status", vars.TodoStatusRemoved).Find(&todayTodos)
 	tomorrowTodos := []models.Todo{}
 	db.DB.Debug().Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
 		"date":    tomorrow,
-		// "status":  vars.TodoStatusOpen,
 	}).Order("time_start, duration, id").Find(&tomorrowTodos)
 	overdueTodos := []models.Todo{}
 	db.DB.Preload("Event").Where(map[string]interface{}{

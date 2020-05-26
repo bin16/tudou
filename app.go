@@ -56,6 +56,7 @@ func main() {
 		actions.POST("/todo.cancel", controllers.CancelTodo)
 		actions.POST("/todo.push", controllers.PushTodo)
 		actions.POST("/todo.pull", controllers.PullTodo)
+		actions.POST("/todo.reset", controllers.ResetTodo)
 		// Overdue
 		actions.POST("/todo.renew", controllers.RenewTodo)
 		// Other
