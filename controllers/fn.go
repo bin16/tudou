@@ -26,7 +26,7 @@ func calcCoins(action string) int64 {
 	case vars.ActionCancelTodo:
 		return -1 * coin
 	case vars.ActionRemoveTodo:
-		return -10 * coin
+		return 0 * coin
 	case vars.ActionCreateTodo:
 		return 1 * coin
 	case vars.ActionCloneTodo:
@@ -53,6 +53,6 @@ func getToday() string {
 	return time.Now().Format("2006-01-02")
 }
 
-func getTomorraw() string {
+func getTomorrow() string {
 	return time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 }

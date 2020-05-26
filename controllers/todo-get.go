@@ -14,30 +14,30 @@ import (
 func GetTodos(c *gin.Context) {
 	u := c.MustGet("user").(*models.User)
 	today := getToday()
-	tomorraw := getTomorraw()
+	tomorrow := getTomorrow()
 	todayTodos := []models.Todo{}
 	db.DB.Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
 		"date":    today,
 		// "status":  vars.TodoStatusOpen,
 	}).Order("time_start, duration, id").Find(&todayTodos)
-	tomorrawTodos := []models.Todo{}
-	db.DB.Preload("Event").Where(map[string]interface{}{
+	tomorrowTodos := []models.Todo{}
+	db.DB.Debug().Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
-		"date":    tomorraw,
+		"date":    tomorrow,
 		// "status":  vars.TodoStatusOpen,
-	}).Order("time_start, duration, id").Find(&tomorrawTodos)
+	}).Order("time_start, duration, id").Find(&tomorrowTodos)
 	overdueTodos := []models.Todo{}
 	db.DB.Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
 		"status":  vars.TodoStatusOpen,
-	}).Order("time_start, duration, id").Not("date", []string{today, tomorraw}).Find(&overdueTodos)
+	}).Order("time_start, duration, id").Not("date", []string{today, tomorrow}).Find(&overdueTodos)
 
 	c.JSON(http.StatusOK, gin.H{
 		"today":    today,
-		"tomorraw": tomorraw,
+		"tomorrow": tomorrow,
 		today:      todayTodos,
-		tomorraw:   tomorrawTodos,
+		tomorrow:   tomorrowTodos,
 		"overdue":  overdueTodos,
 	})
 }

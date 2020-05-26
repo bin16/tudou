@@ -7,6 +7,7 @@ import (
 	"github.com/bin16/tudou/conf"
 	"github.com/bin16/tudou/controllers"
 	"github.com/bin16/tudou/db"
+	"github.com/bin16/tudou/token"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	api := r.Group("/api")
-	api.Use(controllers.ShouldAuthed)
+	api.Use(token.CheckAccessToken)
 	{
 		api.GET("/my/profile", controllers.GetProfile)
 		api.GET("/my/todos", controllers.GetTodos)
@@ -44,10 +45,10 @@ func main() {
 	}
 
 	actions := api.Group("/a")
-	actions.Use(controllers.ShouldAuthed)
+	actions.Use(token.CheckAccessToken)
 	{
 		actions.POST("/todo.update", controllers.UpdateTodo)
-		// Tomorraw
+		// Tomorrow
 		actions.POST("/todo.create", controllers.CreateTodo)
 		actions.POST("/todo.clone", controllers.CloneTodo)
 		// Today

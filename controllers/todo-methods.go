@@ -153,7 +153,7 @@ func PushTodo(c *gin.Context) {
 		copiedTodo := models.Todo{
 			EventID: todo.EventID,
 			UserID:  user.ID,
-			Date:    getTomorraw(),
+			Date:    getTomorrow(),
 			Status:  vars.TodoStatusOpen,
 		}
 		err = tx.Create(&copiedTodo).Error
@@ -213,7 +213,7 @@ func PullTodo(c *gin.Context) {
 	user := c.MustGet("user").(*models.User)
 
 	today := getToday()
-	// pull tomorraw's open todos only
+	// pull tomorrow's open todos only
 	if todo.Date == today || todo.Status != vars.TodoStatusOpen {
 		c.Status(http.StatusBadRequest)
 		return

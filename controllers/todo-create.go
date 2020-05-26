@@ -88,7 +88,7 @@ func RenewTodo(c *gin.Context) {
 	}
 	user := c.MustGet("user").(*models.User)
 
-	if todo.Status != vars.TodoStatusOpen || todo.Date == getToday() || todo.Date == getTomorraw() {
+	if todo.Status != vars.TodoStatusOpen || todo.Date == getToday() || todo.Date == getTomorrow() {
 		c.Status(http.StatusBadRequest)
 		return
 	}
@@ -105,7 +105,7 @@ func RenewTodo(c *gin.Context) {
 		copiedTodo := models.Todo{
 			EventID:   todo.EventID,
 			UserID:    user.ID,
-			Date:      getTomorraw(),
+			Date:      getTomorrow(),
 			Status:    vars.TodoStatusOpen,
 			TimeStart: todo.TimeStart,
 			Duration:  todo.Duration,
@@ -182,7 +182,7 @@ func CreateTodo(c *gin.Context) {
 			User:      *user,
 			Status:    vars.TodoStatusOpen,
 			UserID:    user.ID,
-			Date:      getTomorraw(),
+			Date:      getTomorrow(),
 			TimeStart: values.TimeStart(),
 			Duration:  values.Duration,
 		}
@@ -242,7 +242,7 @@ func CloneTodo(c *gin.Context) {
 			User:      *user,
 			Status:    vars.TodoStatusOpen,
 			UserID:    user.ID,
-			Date:      getTomorraw(),
+			Date:      getTomorrow(),
 			TimeStart: todo.TimeStart,
 			Duration:  todo.Duration,
 		}

@@ -329,8 +329,8 @@
         <div class="paper-tab tab-today" :class="view === TodayView && 'paper-tab--active'">
           <a @click="navigate(TodayView)" href="javascript:;">Today</a>
         </div>
-        <div class="paper-tab tab-tomorraw" :class="view === TomorrawView && 'paper-tab--active'">
-          <a @click="navigate(TomorrawView)" href="javascript:;">Tomorraw</a>
+        <div class="paper-tab tab-tomorrow" :class="view === TomorrowView && 'paper-tab--active'">
+          <a @click="navigate(TomorrowView)" href="javascript:;">Tomorrow</a>
         </div>
         <div class="paper-tab flex-fill"></div>
         <div class="paper-tab tab-settings" :class="view === SettingsView && 'paper-tab--active'">
@@ -341,7 +341,7 @@
         </div>
       </div>
       <today-view :todos="todayTodos" v-show="view === TodayView"></today-view>
-      <tomorraw-view :todos="tomorrawTodos" v-show="view === TomorrawView"></tomorraw-view>
+      <tomorrow-view :todos="tomorrowTodos" v-show="view === TomorrowView"></tomorrow-view>
       <overdue-view :todos="overdueTodos" v-show="view === OverdueView"></overdue-view>
       <settings-view v-show="view === SettingsView"></settings-view>
       <profile-view v-show="view === ProfileView"></profile-view>
@@ -375,7 +375,7 @@
         <div class="todo-action-group-wrapper">
           <slot name="action-group" v-bind:todo="todo"></slot>
         </div>
-        <span class="todo-text">{{ todo.event.content }}</span>
+        <span class="todo-text"><i v-show="index"><small>{{ index.toString().padStart(3, ' ') }}</small></i>&nbsp;{{ todo.event.content }}</span>
       </div>
     </li>
   </template>
@@ -386,7 +386,7 @@
   </template>
   <template id="today-view-template">
     <todo-list>
-      <template v-for="todo in todos">
+      <template v-for="todo, $index in todos">
         <li class="todo todo-form" v-if="form.id === todo.id">
           <div class="todo-icon"></div>
           <div class="todo-tag"></div>
@@ -402,7 +402,8 @@
             </span>
           </div>
         </li>
-        <todo-item  
+        <todo-item
+          :index="$index + 1"
           :todo="todo" 
           :key="todo.id" v-else>
           <template v-slot:action-group="slotProps" >
@@ -420,9 +421,9 @@
       </template>
     </todo-list>
   </template>
-  <template id="tomorraw-view-template">
+  <template id="tomorrow-view-template">
     <todo-list>
-      <template v-for="todo in todos">
+      <template v-for="(todo, $index) in todos">
         <li class="todo todo-form" v-if="form.id === todo.id">
           <div class="todo-icon"></div>
           <div class="todo-tag"></div>
@@ -438,7 +439,8 @@
             </span>
           </div>
         </li>
-        <todo-item  
+        <todo-item
+          :index="$index + 1"
           :todo="todo" 
           :key="todo.id" v-else>
           <template v-slot:action-group="slotProps" >
@@ -567,7 +569,7 @@
         } 
         const TudouView = 'tudou-view';
         const TodayView = 'today-view';
-        const TomorrawView = 'tomorraw-view';
+        const TomorrowView = 'tomorrow-view';
         const OverdueView = 'overdue-view';
         const SettingsView = 'settings-view';
         const ProfileView = 'profile-view';
@@ -604,7 +606,7 @@
         });
         Vue.component('todo-item', {
           template: '#todo-item-template',
-          props: ['todo'],
+          props: ['todo', 'index'],
           methods: { },
         });
         Vue.component('todo-item-form', {
@@ -643,7 +645,8 @@
             async cloneTodo(todo) {
               await cloneTodo(todo.id);
               await this.reload();
-              this.navigate(TomorrawView);
+              console.log(`Todo #${todo.id} cloned.`);
+              // this.navigate(TomorrowView);
             },
             editTodo(todo) {
               this.form = { content: todo.event.content, id: todo.id };
@@ -653,8 +656,8 @@
             },
           },
         });
-        Vue.component('tomorraw-view', {
-          template: '#tomorraw-view-template',
+        Vue.component('tomorrow-view', {
+          template: '#tomorrow-view-template',
           props: ['todos'],
           data() { return { form: { content: '', id: null, }, }; },
           methods: {
@@ -738,14 +741,14 @@
           data: {
             user: {},
             todayTodos: [],
-            tomorrawTodos: [],
+            tomorrowTodos: [],
             overdueTodos: [],
             form: { id: null, content: '' },
 
             view: TodayView,
             TudouView,
             TodayView,
-            TomorrawView,
+            TomorrowView,
             OverdueView,
             SettingsView,
             ProfileView,
@@ -768,9 +771,9 @@
 
             },
             async getTodos() {
-              const { todayTodos, tomorrawTodos, overdueTodos, } = await getTodos();
+              const { todayTodos, tomorrowTodos, overdueTodos, } = await getTodos();
               this.todayTodos = todayTodos;
-              this.tomorrawTodos = tomorrawTodos;
+              this.tomorrowTodos = tomorrowTodos;
               this.overdueTodos = overdueTodos;
             },
             async getProfile() {
@@ -798,17 +801,18 @@
         const data = await resp.json();
         const {
           today,
-          tomorraw,
+          tomorrow,
         } = data;
         const todayTodos = data[today];
-        const tomorrawTodos = data[tomorraw];
+        const tomorrowTodos = data[tomorrow];
         const overdueTodos = data['overdue'];
       
         return {
           today,
           todayTodos,
-          tomorraw,
-          tomorrawTodos: tomorrawTodos.filter(todo => todo.status === 'todo_open'),
+          tomorrow,
+          tomorrowTodos,
+          // tomorrowTodos: tomorrowTodos.filter(todo => todo.status === 'todo_open'),
           overdueTodos,
         };
       }

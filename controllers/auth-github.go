@@ -3,14 +3,12 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/bin16/tudou/conf"
 	"github.com/bin16/tudou/db"
 	"github.com/bin16/tudou/models"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/bin16/tudou/token"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
@@ -87,34 +85,11 @@ func OAuth2GithubCallback(c *gin.Context) {
 		})
 	}
 
-	key := make([]byte, 64)
-	rand.Read(key)
-
-	claims := &jwt.StandardClaims{
-		Audience:  "tudou",
-		Issuer:    "tudou",
-		IssuedAt:  time.Now().Unix(),
-		ExpiresAt: time.Now().AddDate(0, 1, 0).Unix(),
-		Subject:   "login",
-		Id:        user.UUID,
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenS, err := token.SignedString(key)
+	tokenString, err := token.AccessToken(user.UUID)
 	if err != nil {
 		c.Status(http.StatusForbidden)
 		return
 	}
 
-	if err := db.DB.Create(&models.TokenRecord{
-		Token:   tokenS,
-		Key:     key,
-		Revoked: false,
-	}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
-		return
-	}
-
-	c.Redirect(http.StatusTemporaryRedirect, "/login?token="+tokenS)
+	c.Redirect(http.StatusTemporaryRedirect, "/login?token="+tokenString)
 }
