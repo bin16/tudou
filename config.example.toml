@@ -1,5 +1,6 @@
 [server]
     port = 2358
+    static = "./static"
 [database]
     dialect = "sqlite3"
     db = "data/db.sqlite3"

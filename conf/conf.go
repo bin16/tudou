@@ -22,7 +22,8 @@ type TudouConfig struct {
 }
 
 type TudouServerConfig struct {
-	Port int `json:"port"` // 2358
+	Static string `json:"static"` // static dir
+	Port   int    `json:"port"`   // 2358
 }
 
 type TudouGithubConfig struct {
