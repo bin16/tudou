@@ -13,8 +13,8 @@ import (
 // GetTodos GET /api/my/todos
 func GetTodos(c *gin.Context) {
 	u := c.MustGet("user").(*models.User)
-	today := getToday()
-	tomorrow := getTomorrow()
+	today := getToday(u.Setting.Timezone)
+	tomorrow := getTomorrow(u.Setting.Timezone)
 	todayTodos := []models.Todo{}
 	db.DB.Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,

@@ -43,7 +43,7 @@ func FinishTodo(c *gin.Context) {
 	user := c.MustGet("user").(*models.User)
 
 	// only [today]'s [open] todo can be finished
-	if todo.Status != vars.TodoStatusOpen || todo.Date != getToday() {
+	if todo.Status != vars.TodoStatusOpen || todo.Date != getToday(user.Setting.Timezone) {
 		c.Status(http.StatusBadRequest)
 		return
 	}
@@ -158,7 +158,7 @@ func PushTodo(c *gin.Context) {
 	user := c.MustGet("user").(*models.User)
 
 	// only today's open todos can be postponed
-	if todo.Status != vars.TodoStatusOpen || todo.Date != getToday() {
+	if todo.Status != vars.TodoStatusOpen || todo.Date != getToday(user.Setting.Timezone) {
 		c.Status(http.StatusBadRequest)
 		return
 	}
@@ -175,7 +175,7 @@ func PushTodo(c *gin.Context) {
 		copiedTodo := models.Todo{
 			EventID: todo.EventID,
 			UserID:  user.ID,
-			Date:    getTomorrow(),
+			Date:    getTomorrow(user.Setting.Timezone),
 			Status:  vars.TodoStatusOpen,
 		}
 		err = tx.Create(&copiedTodo).Error
@@ -234,7 +234,7 @@ func PullTodo(c *gin.Context) {
 	}
 	user := c.MustGet("user").(*models.User)
 
-	today := getToday()
+	today := getToday(user.Setting.Timezone)
 	// pull tomorrow's open todos only
 	if todo.Date == today || todo.Status != vars.TodoStatusOpen {
 		c.Status(http.StatusBadRequest)

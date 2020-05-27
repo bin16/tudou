@@ -49,10 +49,24 @@ func getTodoID(c *gin.Context) int {
 	return id
 }
 
-func getToday() string {
-	return time.Now().Format("2006-01-02")
+func getToday(timezone string) string {
+	t := time.Now()
+	local, err := time.LoadLocation(timezone)
+	if err != nil {
+		return t.UTC().Format("2006-01-02")
+	}
+	localtime := t.In(local)
+
+	return localtime.Format("2006-01-02")
 }
 
-func getTomorrow() string {
-	return time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+func getTomorrow(timezone string) string {
+	t := time.Now().AddDate(0, 0, 1)
+	local, err := time.LoadLocation(timezone)
+	if err != nil {
+		return t.UTC().Format("2006-01-02")
+	}
+	localtime := t.In(local)
+
+	return localtime.Format("2006-01-02")
 }
