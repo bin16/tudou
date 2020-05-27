@@ -42,6 +42,7 @@ func RenewTodo(c *gin.Context) {
 			Status:    vars.TodoStatusOpen,
 			TimeStart: todo.TimeStart,
 			Duration:  todo.Duration,
+			TimeSet:   todo.TimeSet,
 		}
 		err = tx.Create(&copiedTodo).Error
 		if err != nil {
@@ -118,6 +119,7 @@ func CreateTodo(c *gin.Context) {
 			Date:      getTomorrow(),
 			TimeStart: values.TimeStart(),
 			Duration:  values.Duration,
+			TimeSet:   values.TimeSet,
 		}
 		if err := db.DB.Create(&todo).Related(&todo.Event).Error; err != nil {
 			return err
@@ -157,7 +159,7 @@ func CloneTodo(c *gin.Context) {
 
 	todo := models.Todo{ID: todoID}
 	if err := db.DB.Preload("Event").First(&todo).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(msgJSON(http.StatusInternalServerError, err.Error()))
 		return
 	}
 
@@ -208,5 +210,5 @@ func CloneTodo(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusCreated)
+	c.Status(http.StatusOK)
 }

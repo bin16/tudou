@@ -35,7 +35,7 @@ func UpdateTodo(c *gin.Context) {
 		return
 	}
 	if todo.Status != vars.TodoStatusOpen || todo.Event.Status != vars.EventStatusOpen {
-		c.Status(http.StatusBadRequest)
+		c.JSON(msgJSON(http.StatusBadRequest, "bad_status"))
 		return
 	}
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
@@ -44,6 +44,7 @@ func UpdateTodo(c *gin.Context) {
 		todo.Event.Content = values.Content
 		todo.TimeStart = values.TimeStart()
 		todo.Duration = values.Duration
+		todo.TimeSet = values.TimeSet
 		err = db.DB.Save(&todo).Error
 		if err != nil {
 			return err

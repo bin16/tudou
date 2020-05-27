@@ -6,6 +6,7 @@ type TodoForm struct {
 	Content  string `json:"content"`
 	Time     string `json:"time"`
 	Duration int    `json:"duration"`
+	TimeSet  bool   `json:"timeSet"`
 }
 
 // Valid method return if form is valid and error message
