@@ -761,6 +761,10 @@
       }
       async function getProfile() {
         const resp = await request('/api/my/profile');
+        if (resp.status === 403) {
+          logout();
+          return;
+        }
         const data = await resp.json();
         const { user } = data;
         return user;
@@ -769,11 +773,12 @@
         const results = (content?.match(/@(\d+:\d+)\+?(\d+)?\s?/));
         const time = (results?.[1] ?? '23:59').padStart(5, '0');
         const duration = +(results?.[2] ?? 0); 
+        const timeSet = !!results;
         const resp = await request('/api/a/todo.create', {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ content, time, duration, }),
+          body: JSON.stringify({ content, time, duration, timeSet, }),
           method: 'POST',
         });
       }
@@ -781,11 +786,12 @@
         const results = (content?.match(/@(\d+:\d+)\+?(\d+)?\s?/));
         const time = (results?.[1] ?? '23:59').padStart(5, '0');
         const duration = +(results?.[2] ?? 0); 
+        const timeSet = !!results;
         const resp = await request('/api/a/todo.update', {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ id, content, time, duration, }),
+          body: JSON.stringify({ id, content, time, duration, timeSet, }),
           method: 'POST',
         });
       }
@@ -837,6 +843,11 @@
             'Content-Type': 'application/json',
           },
         });
+      }
+      function logout() {
+        localStorage.removeItem('token');
+        window.history.replaceState(null, 'login', '/login?next=/');
+        document.location.reload();
       }
 
       function request(url, data) {
