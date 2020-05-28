@@ -181,6 +181,7 @@ func CloneTodo(c *gin.Context) {
 			Date:      getTomorrow(user.Setting.Timezone),
 			TimeStart: todo.TimeStart,
 			Duration:  todo.Duration,
+			TimeSet:   todo.TimeSet,
 		}
 		if err := db.DB.Create(&todo).Related(&todo.Event).Error; err != nil {
 			return err

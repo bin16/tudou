@@ -173,10 +173,13 @@ func PushTodo(c *gin.Context) {
 		}
 		// 2. Copy todo
 		copiedTodo := models.Todo{
-			EventID: todo.EventID,
-			UserID:  user.ID,
-			Date:    getTomorrow(user.Setting.Timezone),
-			Status:  vars.TodoStatusOpen,
+			EventID:   todo.EventID,
+			UserID:    user.ID,
+			Date:      getTomorrow(user.Setting.Timezone),
+			Status:    vars.TodoStatusOpen,
+			TimeStart: todo.TimeStart,
+			Duration:  todo.Duration,
+			TimeSet:   todo.TimeSet,
 		}
 		err = tx.Create(&copiedTodo).Error
 		if err != nil {
