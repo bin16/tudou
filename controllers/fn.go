@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"log"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -9,10 +11,22 @@ import (
 )
 
 func http2Push(c *gin.Context, urls ...string) {
+	log.Println("http2Push ====")
+	authorization := c.GetHeader("Authorization")
 	if pusher := c.Writer.Pusher(); pusher != nil {
 		for _, u := range urls {
-			pusher.Push(u, nil) // ignore error
+			err := pusher.Push(u, &http.PushOptions{
+				Header: http.Header{
+					"Authorization": []string{authorization},
+					"From":          []string{c.Request.URL.Path},
+				},
+			})
+			if err != nil {
+				log.Printf("---- Failed to push %s\n", u)
+			}
 		}
+	} else {
+		log.Println("==== Pusher not available")
 	}
 }
 

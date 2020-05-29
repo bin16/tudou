@@ -1,4 +1,5 @@
 [server]
+    debug = false
     port = 2358
     static = "./static"
 [database]

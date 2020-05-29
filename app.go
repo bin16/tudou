@@ -8,6 +8,7 @@ import (
 	"github.com/bin16/tudou/controllers"
 	"github.com/bin16/tudou/db"
 	"github.com/bin16/tudou/token"
+
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -24,6 +25,9 @@ func main() {
 	}
 	db.Use(database)
 
+	if !conf.Server.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	r.Use(static.Serve("/", static.LocalFile("static", false)))
 	r.GET("/", controllers.IndexPage)

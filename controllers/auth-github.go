@@ -64,8 +64,8 @@ func OAuth2GithubCallback(c *gin.Context) {
 	json.NewDecoder(resp.Body).Decode(&g)
 
 	user := models.User{GithubID: g.ID}
-	if db.DB.Debug().Where("github_id = ?", g.ID).First(&user).RecordNotFound() {
-		db.DB.Debug().Transaction(func(t *gorm.DB) error {
+	if db.DB.Where("github_id = ?", g.ID).First(&user).RecordNotFound() {
+		db.DB.Transaction(func(t *gorm.DB) error {
 			if err := db.DB.Create(&user).Error; err != nil {
 				return err
 			}

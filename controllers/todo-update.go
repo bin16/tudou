@@ -76,5 +76,7 @@ func UpdateTodo(c *gin.Context) {
 		return
 	}
 
+	http2Push(c, "/api/my/todos")
+
 	c.Status(http.StatusCreated)
 }

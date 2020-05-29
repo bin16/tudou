@@ -24,6 +24,7 @@ type TudouConfig struct {
 type TudouServerConfig struct {
 	Static string `json:"static"` // static dir
 	Port   int    `json:"port"`   // 2358
+	Debug  bool   `json:"debug"`  // false
 }
 
 type TudouGithubConfig struct {

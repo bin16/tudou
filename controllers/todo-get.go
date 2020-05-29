@@ -21,7 +21,7 @@ func GetTodos(c *gin.Context) {
 		"date":    today,
 	}).Order("time_start, duration, id").Not("status", vars.TodoStatusRemoved).Find(&todayTodos)
 	tomorrowTodos := []models.Todo{}
-	db.DB.Debug().Preload("Event").Where(map[string]interface{}{
+	db.DB.Preload("Event").Where(map[string]interface{}{
 		"user_id": u.ID,
 		"date":    tomorrow,
 	}).Order("time_start, duration, id").Find(&tomorrowTodos)
